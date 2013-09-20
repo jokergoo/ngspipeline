@@ -1,0 +1,6 @@
+<<echo=FALSE, results=tex>>=
+d = read.table("[% bissnp_cpg_bedgraph_file %], header = TRUE)
+lambda_conversion = mean(d[[5]])
+@
+
+Lambda conversion rate: \Sexp{lambda_conversion}

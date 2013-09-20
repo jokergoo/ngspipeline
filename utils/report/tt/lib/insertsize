@@ -1,0 +1,44 @@
+
+
+<<echo=FALSE, results=tex>>=
+lines = readLines("[% insertsize_file %]")
+
+i1 = grep("^MEDIAN_INSERT_SIZE", lines)[1]
+data_lines = lines[i1+1]
+s = as.numeric(strsplit(data_lines, "\t")[[1]])
+
+d = data.frame(statistic = s[c(1, 3, 4, 5)])
+rownames(d) = c("median", "min", "max", "mean")
+library(xtable)
+print(xtable(d, caption = "Statistics for insert size"), table.placement = "H")
+@
+
+\setkeys{Gin}{width=0.7\textwidth}
+\begin{figure}[H]
+\begin{center}
+<<label=fig_insertsize, fig = TRUE, echo=FALSE, results=hide>>=
+lines = readLines("[% insertsize_file %]")
+
+i1 = grep("^MEDIAN_INSERT_SIZE", lines)[1]
+data_lines = lines[i1+1]
+s = as.numeric(strsplit(data_lines, "\t")[[1]])
+
+
+i2 = grep("^insert_size", lines)[1]
+data_lines = lines[(i2+1):length(lines)]
+raw = strsplit(data_lines, "\t")
+
+x = sapply(raw, function(x) as.numeric(x[1]))
+y = sapply(raw, function(x) as.numeric(x[2]))
+
+plot(x, y, type = "l")
+abline(v = s[1], col = "red")
+abline(v = s[5], col = "orange")
+legend("topleft", col = c("red", "orange"), lty = 1, legend = c("median", "mean"))
+
+@
+\end{center}
+\caption{Insert size distribution}
+\label{fig_insertsize}
+\end{figure}
+\setkeys{Gin}{width=0.8\textwidth}

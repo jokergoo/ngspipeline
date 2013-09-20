@@ -1,0 +1,98 @@
+[% PROCESS header %]
+
+\section{Overview}
+This is a QC report for whole genome bisulfite sequencing data.
+The pipeline uses {\it BisSNP} to call mathylation. Software
+as well as their parameters for each step is listed:
+
+\begin{enumerate}
+  \item {\bf quality and adapter trimming}: by {\it \href{http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/}{Trim Galore}}, use default settings
+  [% IF tool == "bismark" %]
+  \item {\bf alignment}: {\tt \href{http://www.bioinformatics.babraham.ac.uk/projects/bismark/}{Bismark}} (v0.8.3) is used for alignment Explictely specified parameters are {\tt --bowtie2 -N 1 --score_min L,0,-0.6} which means use bowtie2 to do alignment, permit one mismatch in seed alignment, minimal alignment score should be about -20.
+  [% ELSIF tool == "bsmap" %]
+  \item {\bf alignment}: {\tt \href{https://code.google.com/p/bsmap/}{BSMAP}} (v2.74) is used for alignment. Explictely specified parameters are {\tt-r 0 -v 8} which means, reads with unique match, at most 8 mismatches in a read's alignment.
+  [% ELSIF tool == "methylctools" %]
+  \item {\bf alignment}: {\tt MethylCtools} (v0.9.2) is used for alignment, use bwa-0.6.2-tpx or cnybwa-0.6.2.
+  [% END %]
+  \item {\bf flagstat}: by {\tt samtools flagstat}
+  \item {\bf merge and remove duplicates}: by {\it Picard}. If samples have multiple lanes and if lanes are from different libraries, then first merge bam files inside each library, remove duplicates and them merge bam files from different libraries. And if lanes are from the same library, then first merge bam files and then remove duplicates.
+  \item {\bf insert size}: by {\it Picard}
+  \item {\bf lambda conversion rate}: by {\it [% tool %]}'s methylation calling script.
+  \item {\bf methylation calling}: by {\it BisSNP}
+\end{enumerate}
+
+\begin{figure}[h!]
+\begin{center}
+<<label=fig_pipeline, fig = TRUE, echo=FALSE, results=hide>>=
+library(Rgraphviz)
+nodes = c("trimming", "alignment", "flagstat", "merge and remove duplicates", "insertsize", "methylation calling", "lambda conversion rate", "report")
+edges = vector("list", 8)
+names(edges) = nodes
+edges[[1]] = list(edges = 2)
+edges[[2]] = list(edges = 3:4)
+edges[[3]] = list(edges = 8)
+edges[[4]] = list(edges = 5:7)
+edges[[5]] = list(edges = 8)
+edges[[6]] = list(edges = 8)
+edges[[7]] = list(edges = 8)
+edges[[8]] = list()
+gR <- graphNEL(nodes=nodes, edgeL=edges, edgemode='directed')
+
+plot(gR, attrs = list(node = list(shape="box", width = 3, height = 0.75)))
+
+@
+\end{center}
+\caption{pipeline}
+\label{fig_pipeline}
+\end{figure}
+
+
+\section{FastQC report}
+Following are FastQC reports for FastQ files of this sample (totally [% fastqc_file.size %] FastQ files, only reports for FastQ files before trimming are shown here):
+
+<<echo=FALSE, results=hide>>=
+reads_sum = 0
+@
+
+[% FOREACH f_fastqc IN fastqc_file %]
+[% IF f_fastqc.match('\/fastqc_r(\d)_trimmed_(\d+)\/') %]
+<<echo=FALSE, results=hide>>=
+lines = readLines("[% f_fastqc %]")
+
+i1 = grep("^>>Basic Statistics", lines)
+i2 = grep(">>END_MODULE", lines)
+i2 = i2[ which(i2 > i1)[1] ]
+	
+data_lines = lines[(i1+2):(i2-1)]
+raw = strsplit(data_lines, "\t")
+	
+measure = sapply(raw, function(x) x[1])
+value = sapply(raw, function(x) as.numeric(x[2]))
+
+reads_sum = reads_sum + value[4]
+@
+[% ELSE %]
+[% PROCESS fastqc %]
+[% END %]
+[% END %]
+
+
+\section{Flagstat report}
+[% PROCESS flagstat %]
+
+\section{Insert size report}
+[% PROCESS insertsize %]
+
+\section{Duplicates}
+[% FOREACH f_duplicate IN duplicate_file %]
+[% IF duplicate_file.size > 1 %]
+Duplicate statistics for [% f_duplicate.basename().replace("_", "\\_") %].
+[% END %]
+
+[% PROCESS duplicate %]
+[% END %]
+
+\section{methylation calling}
+[% PROCESS bissnp %]
+
+[% PROCESS footer %]

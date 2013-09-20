@@ -1,0 +1,25 @@
+
+Total number of reads are extracted from trimmed FastQ files.
+[% IF flagstat_file.size > 1 %] Since there are [% flagstat_file.size %] lanes for this sample, the following number in the table are summations of corresponding values [% END %]
+
+<<echo=FALSE, results=tex>>=
+
+flag_stat_value = numeric(3)
+
+[% FOREACH f_flag IN flagstat_file %]
+lines = readLines("[% f_flag %]")
+
+raw = strsplit(lines, "\\s+")
+value1 = sapply(raw, function(x) as.numeric(x[1]))
+value2 = sapply(raw, function(x) as.numeric(x[3]))
+
+flag_stat_value = flag_stat_value + c(value1[3], value1[7], value1[9])
+
+[% END %]
+
+d = data.frame(Number = c(reads_sum, flag_stat_value), percentage = c(reads_sum, flag_stat_value)/reads_sum)
+rownames(d) = c("reads in total", "mapped", "properly paired",  "singletons")
+
+library(xtable)
+print(xtable(d, caption = "Flag statistics"), table.placement = "H")
+@

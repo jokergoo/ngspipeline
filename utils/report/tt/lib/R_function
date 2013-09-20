@@ -1,0 +1,358 @@
+<<echo=FALSE, results=tex>>=
+
+plot_fastqc_per_base_sequence_quality = function(file, main = "Per base sequence quality") {
+	lines = readLines(file)
+	i1 = grep("^>>Per base sequence quality", lines)
+	i2 = grep(">>END_MODULE", lines)
+	i2 = i2[ which(i2 > i1)[1] ]
+	
+	data_lines = lines[(i1+2):(i2-1)]
+	raw = strsplit(data_lines, "\t")
+	
+	base = sapply(raw, function(x) x[1])
+	mean = sapply(raw, function(x) as.numeric(x[2]))
+	median = sapply(raw, function(x) as.numeric(x[3]))
+	quantile25 = sapply(raw, function(x) as.numeric(x[4]))
+	quantile75 = sapply(raw, function(x) as.numeric(x[5]))
+	quantile10 = sapply(raw, function(x) as.numeric(x[6]))
+	quantile90 = sapply(raw, function(x) as.numeric(x[7]))
+	
+	basename = base
+	base = seq_along(base)
+	
+	plot(range(base), range(c(0, quantile90, quantile10)), type = "n", axes = FALSE, ann = FALSE)
+	for(i in seq(1, max(base), by = 4)) {
+		abline(v = i, lty = 2, col = "#CCCCCC")
+	}
+	axis(side = 1, at = seq(1, max(base), by = 4), labels = basename[seq(1, max(base), by = 4)])
+	for(i in seq_along(base)) {
+		lines(c(base[i]-0.5, base[i] + 0.5), c(quantile90[i], quantile90[i]), col = "orange")
+		lines(c(base[i]-0.5, base[i] + 0.5), c(quantile10[i], quantile10[i]), col = "orange")
+		lines(c(base[i], base[i]), c(quantile90[i], quantile10[i]), col = "orange")
+	}
+	
+	for(i in seq_along(base)) {
+		lines(c(base[i]-0.5, base[i] + 0.5), c(quantile75[i], quantile75[i]), col = "red")
+		lines(c(base[i]-0.5, base[i] + 0.5), c(quantile25[i], quantile25[i]), col = "red")
+		lines(c(base[i], base[i]), c(quantile75[i], quantile25[i]), col = "red")
+	}
+	
+	lines(base, mean, col = "green")
+	lines(base, median, col = "black")
+	
+	axis(side = 2)
+	box()
+	title(main = main, xlab = "Base position", ylab = "Phred score")
+}
+
+
+plot_fastqc_per_sequence_quality_scores = function(file, main = "Per sequence quality scores") {
+	lines = readLines(file)
+	i1 = grep("^>>Per sequence quality scores", lines)
+	i2 = grep(">>END_MODULE", lines)
+	i2 = i2[ which(i2 > i1)[1] ]
+	
+	data_lines = lines[(i1+2):(i2-1)]
+	raw = strsplit(data_lines, "\t")
+	
+	quanlity = sapply(raw, function(x) as.numeric(x[1]))
+	count = sapply(raw, function(x) as.numeric(x[2]))
+	
+	plot(quanlity, count, ylim = range(0, count), main = main, type = "l", xlab = "Mean sequence Quality (Phred Score)")
+}
+
+
+
+plot_fastqc_per_base_sequence_content = function(file, main = "Per base sequence content") {
+	lines = readLines(file)
+	i1 = grep("^>>Per base sequence content", lines)
+	i2 = grep(">>END_MODULE", lines)
+	i2 = i2[ which(i2 > i1)[1] ]
+	
+	data_lines = lines[(i1+2):(i2-1)]
+	raw = strsplit(data_lines, "\t")
+	
+	base = sapply(raw, function(x) x[1])
+	G = sapply(raw, function(x) as.numeric(x[2]))/100
+	A = sapply(raw, function(x) as.numeric(x[3]))/100
+	T = sapply(raw, function(x) as.numeric(x[4]))/100
+	C = sapply(raw, function(x) as.numeric(x[5]))/100
+	
+	basename = base
+	base = seq_along(base)
+	
+	plot(range(base), c(0, 1), type = "n", axes = FALSE, ann = FALSE)
+	for(i in seq(1, max(base), by = 4)) {
+		abline(v = i, lty = 2, col = "#CCCCCC")
+	}
+	axis(side = 1, at = seq(1, max(base), by = 4), labels = basename[seq(1, max(base), by = 4)])
+	box()
+	axis(side = 2)
+	box()
+	title(main = main, xlab = "Base position", ylab = "percentage")
+	
+	lines(base, G, col = "black")
+	lines(base, A, col = "green")
+	lines(base, T, col = "red")
+	lines(base, C, col = "blue")
+	legend("topright", lty = 1, col = c("black", "green", "red", "blue"), legend = c("G", "A", "T", "C"))
+}
+
+
+
+plot_fastqc_per_base_gc_content = function(file, main = "Per base GC content") {
+	lines = readLines(file)
+	i1 = grep("^>>Per base GC content", lines)
+	i2 = grep(">>END_MODULE", lines)
+	i2 = i2[ which(i2 > i1)[1] ]
+	
+	data_lines = lines[(i1+2):(i2-1)]
+	raw = strsplit(data_lines, "\t")
+	
+	base = sapply(raw, function(x) x[1])
+	GC = sapply(raw, function(x) as.numeric(x[2]))/100
+	
+	basename = base
+	base = seq_along(base)
+	
+	plot(range(base), c(0, 1), type = "n", axes = FALSE, ann = FALSE)
+	for(i in seq(1, max(base), by = 4)) {
+		abline(v = i, lty = 2, col = "#CCCCCC")
+	}
+	axis(side = 1, at = seq(1, max(base), by = 4), labels = basename[seq(1, max(base), by = 4)])
+	box()
+	axis(side = 2)
+	box()
+	title(main = main, xlab = "Base position", ylab = "percentage")
+	
+	lines(base, GC, col = "black")
+}
+
+plot_fastqc_per_sequence_gc_content = function(file, main = "Per sequence GC content") {
+	lines = readLines(file)
+	i1 = grep("^>>Per sequence GC content", lines)
+	i2 = grep(">>END_MODULE", lines)
+	i2 = i2[ which(i2 > i1)[1] ]
+	
+	data_lines = lines[(i1+2):(i2-1)]
+	raw = strsplit(data_lines, "\t")
+	
+	gc_content = sapply(raw, function(x) as.numeric(x[1]))/100
+	count = sapply(raw, function(x) as.numeric(x[2]))
+	
+	m = sum(gc_content*count)/sum(count)
+	m2 = sum(gc_content^2 * count)/sum(count)
+	theo_count = dnorm(gc_content, mean = m, sd = sqrt(m2 - m^2))
+	theo_count = theo_count * (sum(count) / sum(theo_count))
+	
+	plot(gc_content, count, ylim = range(0, count, theo_count), main = main, type = "l", col = "red", xlab = "Mean GC content per read")
+	lines(gc_content, theo_count, col = "blue")
+	legend("topright", lty = 1, col = c("red", "blue"), legend = c("GC count per read", "Theoritical Distribution"))
+}
+
+
+plot_fastqc_per_base_n_content = function(file, main = "Per base N content") {
+	lines = readLines(file)
+	i1 = grep("^>>Per base N content", lines)
+	i2 = grep(">>END_MODULE", lines)
+	i2 = i2[ which(i2 > i1)[1] ]
+	
+	data_lines = lines[(i1+2):(i2-1)]
+	raw = strsplit(data_lines, "\t")
+	
+	base = sapply(raw, function(x) x[1])
+	n_count = sapply(raw, function(x) as.numeric(x[2]))/100
+	
+	basename = base
+	base = seq_along(base)
+	
+	plot(range(base), c(0, 1), type = "n", axes = FALSE, ann = FALSE)
+	for(i in seq(1, max(base), by = 4)) {
+		abline(v = i, lty = 2, col = "#CCCCCC")
+	}
+	axis(side = 1, at = seq(1, max(base), by = 4), labels = basename[seq(1, max(base), by = 4)])
+	box()
+	axis(side = 2)
+	box()
+	title(main = main, xlab = "Base position", ylab = "percentage")
+	
+	lines(base, n_count, col = "black")
+}
+
+
+plot_fastqc_sequence_length_distribution = function(file, main = "Sequence Length Distribution") {
+	lines = readLines(file)
+	i1 = grep("^>>Sequence Length Distribution", lines)
+	i2 = grep(">>END_MODULE", lines)
+	i2 = i2[ which(i2 > i1)[1] ]
+	
+	data_lines = lines[(i1+2):(i2-1)]
+	raw = strsplit(data_lines, "\t")
+	
+	base = sapply(raw, function(x) x[1])
+	count = sapply(raw, function(x) as.numeric(x[2]))/100
+	
+	basename = base
+	base = seq_along(base)
+	
+	plot(range(1, base), range(0, count), type = "n", axes = FALSE, ann = FALSE)
+	for(i in seq(1, max(base), by = 4)) {
+		abline(v = i, lty = 2, col = "#CCCCCC")
+	}
+	axis(side = 1, at = seq(1, max(base), by = 4), labels = basename[seq(1, max(base), by = 4)])
+	box()
+	axis(side = 2)
+	box()
+	title(main = main, xlab = "Base position")
+	
+	for(i in seq_along(base)) {
+		rect(base[i]-0.5, 0, base[i]+0.5, count[i], col="#CCCCCC")
+	}
+}
+
+
+require(RColorBrewer)
+ 
+ 
+# since gene expression data always contains a lot of samples.
+# If one want to see distributions of samples, using boxplot would be not so clear.
+# The function use continuous colors to represent density distributions of expression
+# values in samples and can make a better illustration of the data.
+heatplot = function(x, col=rev(brewer.pal(10, "Spectral")), draw.quantiles = TRUE, align = TRUE, each = FALSE, ...) {
+    if(is.vector(x) && class(x) != "list") {
+        x = as.matrix(x)
+    }
+    if(is.matrix(x)) {
+        n = dim(x)[2]
+        # if different styles of colors are used, it should be formatted as a list
+        # because the number of sections of colors may be different
+ 
+        dx = apply(x, 2, function(x) density(x)$x)  # data value
+        dy = apply(x, 2, function(x) density(x)$y)  # density value
+        quantile.values = apply(x, 2, quantile)
+        mean.values = apply(x, 2, mean)
+    }
+    if(is.list(x)) {
+        n = length(x)
+ 
+        dx = sapply(x, function(x) density(x)$x)  # data value
+        dy = sapply(x, function(x) density(x)$y)  # density value
+        quantile.values = sapply(x, quantile)
+        mean.values = sapply(x, mean)
+    }
+ 
+    if(!is.list(col)) {
+        col = rep(list(col), n)
+    }
+    if(is.list(col) && length(col) != n) {
+        stop("Since 'col' is specified as a list, it should has the same length as numbers of columns in 'x'.")
+    }
+    if(!all(sapply(col, length) > 1)) {
+        stop("Length of any color vector should contain at least two colors.")
+    }
+    
+    if(! each) {
+        min.density = min(as.vector(dy))
+        max.density = max(as.vector(dy))
+        range.density = max.density - min.density
+        dy = (dy - min.density) / range.density
+    }
+ 
+    min.value = min(as.vector(dx))
+    max.value = max(as.vector(dx))
+    range.value = max.value - min.value
+ 
+    plot(c(0, n+1), c(min.value, max.value), type = "n", axes=FALSE, ann=FALSE, ...)
+    for(j in 1:n) {
+ 
+        if(each) {
+            min.density = min(dy[, j])
+            max.density = max(dy[, j])
+            range.density = max.density - min.density
+            dy[, j] = (dy[, j] - min.density) / range.density
+        }
+ 
+        for(i in 2:length(dy[, j])) {
+            color = color.pal(dy[i, j], col=col[[j]], breaks=seq(0, 1, length.out=length(col[[j]])))
+            rect(j-0.5, dx[i-1, j], j+0.5, dx[i, j], col=color, border=color)
+        }
+ 
+        if(align) {
+            color = color.pal(min.density, col=col[[j]], breaks=seq(0, 1, length.out=length(col[[j]])))
+            rect(j-0.5, min(dx[, j]), j+0.5, min.value, col=color, border=color)
+            rect(j-0.5, max(dx[, j]), j+0.5, max.value, col=color, border=color)
+        }
+    }
+    #axis(side = 2)
+    if(draw.quantiles) {
+        for(i in 1:dim(quantile.values)[1]) {
+            lines(1:n, quantile.values[i, ], col="black", lwd=1)
+        }
+        lines(1:n, mean.values, col = "black", lwd = 1)
+        text(rep(n+0.6, dim(quantile.values)[1]), quantile.values[, n], rownames(quantile.values), cex=0.8, adj=c(0, 0.5))
+        text(n+0.6, mean.values[n], "mean", cex=0.8, adj=c(0, 0.5))
+    }
+}
+ 
+jitplot = function(x, alpha = 0.05) {
+ 
+    if(is.matrix(x)) {
+        n = dim(x)[2]
+    }
+ 
+    min.value = min(as.vector(x))
+    max.value = max(as.vector(x))
+    range.value = max.value - min.value
+ 
+    plot(c(0, n+1), c(min.value, max.value), type = "n", axes=FALSE, ann=FALSE)
+    for(j in 1:n) {
+        k = length(x[, j])
+        points((runif(k)-0.5)*0.8+j, x[, j], col = rgb(0, 0, 0, alpha), pch=16)
+    }
+ 
+}
+color.pal = function(x, col = c("green", "black", "red"), breaks = c(-5, 0, 5)) {
+    
+    if(length(col) != length(breaks)) {
+		stop("Length of col should be equal to the length of breaks.\n")
+	}
+	
+    # change col represented as strings to RGB space
+    col_section = sapply(col, function(x) as.vector(col2rgb(x)))
+    col_section = t(col_section)
+    
+    x[x >= max(breaks)] = max(breaks)
+    x[x <= min(breaks)] = min(breaks)
+    
+    color = character(length(x))
+    for(i in 1:length(x)) {
+        # NA values, grey color
+        if(!is.numeric(x[i])) {
+            color[i] = rgb(128, 128, 128, maxColorValue = 255)
+            next
+        }
+        value = x[i]
+        
+        # find which interval the value belongs to 
+        interval = which(breaks >= x[i])[1]
+        if(length(interval) == 0) {
+            interval = length(interval)
+        }
+        if(interval == 1) {
+            interval = 2
+        }
+        
+        # linear interpolation
+        col_num = (value - breaks[interval])*(col_section[interval, ] - col_section[interval - 1, ]) / (breaks[interval] - breaks[interval - 1]) + col_section[interval, ]
+        
+        col_num = ifelse(col_num > 255, 255, col_num)
+        col_num = ifelse(col_num < 0, 0, col_num)
+        
+        color[i] = rgb(col_num[1], col_num[2], col_num[3], maxColorValue = 255)
+    }
+    
+    return(color)
+}
+
+
+@

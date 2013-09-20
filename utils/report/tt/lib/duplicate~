@@ -1,0 +1,20 @@
+<<echo=FALSE, results=tex>>=
+lines = readLines("[% f_duplicate %]")
+
+i1 = grep("^LIBRARY", lines)[1]
+data_lines = lines[i1+1]
+s = as.numeric(strsplit(data_lines, "\t")[[1]])
+s = c(s, rep(NA, 9 - length(s)))
+
+d = data.frame(statistic = s[-1])
+rownames(d) = c("Unpaired reads examined",
+"Read pairs examined",
+"Unmapped reads",
+"Unpaired read duplicates",
+"Read pair duplicates",
+"Read pair optical duplicates",
+"Percentage duplicates",
+"Estimated library size")
+library(xtable)
+print(xtable(d, caption = "Statistics for MarkDuplicates"), table.placement = "h!")
+@

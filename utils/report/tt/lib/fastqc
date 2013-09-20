@@ -1,0 +1,48 @@
+
+<<echo=FALSE, results=tex>>=
+lines = readLines("[% f_fastqc %]")
+
+i1 = grep("^>>Basic Statistics", lines)
+i2 = grep(">>END_MODULE", lines)
+i2 = i2[ which(i2 > i1)[1] ]
+	
+data_lines = lines[(i1+2):(i2-1)]
+raw = strsplit(data_lines, "\t")
+	
+measure = sapply(raw, function(x) x[1])
+value = sapply(raw, function(x) x[2])
+
+d = data.frame(value = value)
+rownames(d) = measure
+
+library(xtable)
+print(xtable(d, caption = "FastQC basic statistics"), table.placement = "H")
+@
+
+\setkeys{Gin}{width=1.2\textwidth}
+\begin{figure}
+\begin{center}
+<<label=fig_fastqc_[% f_fastqc.rand() %], fig = TRUE, echo=FALSE, results=hide, width=12, height=12>>=
+
+
+par(mfrow = c(3, 3))
+plot_fastqc_per_base_sequence_quality("[% f_fastqc %]")
+plot_fastqc_per_sequence_quality_scores("[% f_fastqc %]")
+plot_fastqc_per_base_sequence_content("[% f_fastqc %]")
+plot_fastqc_per_base_gc_content("[% f_fastqc %]")
+plot_fastqc_per_sequence_gc_content("[% f_fastqc %]")
+plot_fastqc_per_base_n_content("[% f_fastqc %]")
+plot_fastqc_sequence_length_distribution("[% f_fastqc %]")
+
+par(mfrow = c(1, 1))
+
+[% SET r_name = f_fastqc.rand %]
+fastq_name_[% r_name %] = gsub('\\_', '\\\\\\\\_', d$value[1])
+
+@
+\end{center}
+\caption{FastQC for \Sexpr{fastq_name_[% r_name %]}}
+\label{fig_fastqc}
+\end{figure}
+
+\setkeys{Gin}{width=0.8\textwidth}

@@ -1,0 +1,136 @@
+
+
+\setkeys{Gin}{width=1.2\textwidth}
+\begin{figure}
+\begin{center}
+<<label=fig_bissnp, fig = TRUE, echo=FALSE, results=hide, width=12, height=12>>=
+
+d = read.table("[% bissnp_cpg_bedgraph_file %]", skip = 1, stringsAsFactors = FALSE)
+d = d[! d[[1]] %in% c("chrM", "lambda"), ]
+chr.raw = as.vector(unique(d[[1]]))
+chr.num = chr.raw[grepl("^chr\\d+", chr.raw)]
+chr.num = gsub("^chr(.*)$", "\\1", chr.num)
+chr.let = chr.raw[! grepl("^chr\\d+", chr.raw)]
+chr.let = gsub("^chr(.*)$", "\\1", chr.let)
+
+chr.sorted = paste("chr", c(sort(as.numeric(chr.num)), sort(chr.let)), sep = "")
+
+d[[1]] = factor(as.vector(d[[1]]), levels = chr.sorted)
+
+cpg_coverage_mean = tapply(d[[5]], d[[1]], mean)
+cpg_coverage_median = tapply(d[[5]], d[[1]], median)
+
+par(mfrow = c(3, 3))
+plot(c(0, length(cpg_coverage_mean)), c(0, max(c(cpg_coverage_mean, cpg_coverage_median))), axes = FALSE, ann = FALSE, type="n")
+for(i in seq_along(cpg_coverage_mean)) {
+	abline(v = i, lty = 3, col = "grey")
+	lines(c(i-1, i), c(cpg_coverage_mean[i], cpg_coverage_mean[i]), lwd = 2)
+	lines(c(i-1, i), c(cpg_coverage_median[i], cpg_coverage_median[i]), lwd = 2, col = "red")
+}
+par(las = 3)
+axis(side = 1, at = seq_along(cpg_coverage_mean), labels = names(cpg_coverage_mean))
+axis(side = 2)
+box()
+par(las = 0)
+title(main = "Coverage per chromosome", ylab = "mean and median CpG coverage")
+legend("bottomleft", lty=1, col = c("black", "red"), legend = c("mean", "median"))
+
+CpG_coverage_list = vector("list", length(levels(d[[1]])))
+names(CpG_coverage_list) = levels(d[[1]])
+for(chr in levels(d[[1]])) {
+	CpG_coverage_list[[chr]] = log10(d[[5]][d[[1]] == chr])
+}
+
+heatplot(CpG_coverage_list, ylim = c(0, log10(max(d[[5]]))))
+par(las = 3)
+axis(side = 1, at = seq_along(cpg_coverage_mean), labels = names(cpg_coverage_mean))
+axis(side = 2, at = c(0, 1, 2), labels = c(1, 10, 100))
+box()
+par(las = 0)
+title(main = "Coverage distribution per chromosome", ylab = "")
+
+ta = table(d[[5]])
+plot(as.numeric(names(ta)), ta, main = "histogram of CpG coverage", log = "x", type = "h", ylab = "", xlab="CpG coverage")
+axis(side = 2)
+
+
+cpg_methyrate_mean = tapply(d[[4]], d[[1]], mean)/100
+cpg_methyrate_median = tapply(d[[4]], d[[1]], median)/100
+plot(c(0, length(cpg_methyrate_mean)), c(0, 1), axes = FALSE, ann = FALSE, type = "n")
+for(i in seq_along(cpg_methyrate_mean)) {
+	abline(v = i, lty = 3, col = "grey")
+	lines(c(i-1, i), c(cpg_methyrate_mean[i], cpg_methyrate_mean[i]), lwd = 2)
+	lines(c(i-1, i), c(cpg_methyrate_median[i], cpg_methyrate_median[i]), lwd = 2, col = "red")
+}
+par(las = 3)
+axis(side = 1, at = seq_along(cpg_methyrate_mean) - 0.5, labels = names(cpg_methyrate_mean))
+axis(side = 2)
+box()
+par(las = 0)
+title(main = "methylation rate per chromosome", ylab = "mean and median methylation rate")
+legend("bottomleft", lty=1, col = c("black", "red"), legend = c("mean", "median"))
+
+
+
+
+methylation_list = vector("list", length(levels(d[[1]])))
+names(methylation_list) = levels(d[[1]])
+for(chr in levels(d[[1]])) {
+	methylation_list[[chr]] = d[[4]][d[[1]] == chr]/100
+}
+
+heatplot(methylation_list)
+par(las = 3)
+axis(side = 1, at = seq_along(cpg_coverage_mean) - 0.5, labels = names(cpg_coverage_mean))
+axis(side = 2)
+box()
+par(las = 0)
+title(main = "methylation rate distribution per chromosome", ylab = "")
+
+
+hist(d[[4]]/100, main = "histogram of methylation rate", xlab = "methylation rate")
+
+
+coverage2methyrate = tapply(d[[4]], d[[5]], mean)/100
+plot(as.numeric(names(coverage2methyrate)), coverage2methyrate, ylim = c(0, 1), pch=16, log = "x", cex = 0.8, xlab = "CpG coverage", ylab = "mean methylation rate", main = "Mean Methylation rate for each CpG coverage")
+
+col = c("#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F","#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928")
+
+methy_dist_in_coverage = tapply(d[[4]]/100, d[[5]], function(x) hist(x, breaks = seq(0, 1, by = 0.1), plot = FALSE)$counts)
+methy_dist_in_coverage = methy_dist_in_coverage[1:12]
+plot(0,0, xlim = c(0, 1), ylim = c(0, max(unlist(methy_dist_in_coverage))), type = "n", main="methylation rate distribution for each CpG coverage", xlab = "methylation rate", ylab = "")
+for(i in 1:12) {
+	lines(seq(0.05, 0.95, by = 0.1), methy_dist_in_coverage[[i]], col = col[i])
+}
+legend("topleft", lty = 1, col = col, legend = paste(1:12, "x"))
+
+
+par(mfrow = c(1, 1))
+
+bissnp_cpg_coverage_mean_global = mean(d[[5]])
+bissnp_cpg_methyrate_mean_global = mean(d[[4]])
+
+@
+\end{center}
+\caption{methylation calling report}
+\label{fig_insertsize}
+\end{figure}
+
+<<echo=FALSE, results=hide>>=
+lambda = read.table("[% lambda_conversion_rate_file %]", header = TRUE, sep = "\t")
+lambda_conversion_rate = 1 - mean(lambda[[5]], na.rm = TRUE)
+@
+
+Lambda bisulfite conversion rate: \Sexpr{lambda_conversion_rate}
+
+Number of CpG sites with at least 1x coverage: \Sexpr{dim(d)[1]}
+
+Number of methylated CpG sites: \Sexpr{sum(d[[4]] > 0)}
+
+<<echo=FALSE, results=tex>>=
+tx = rbind(c(fivenum(d[[5]]), mean(d[[5]])), c(fivenum(d[[4]]), mean(d[[4]])))
+rownames(tx) = c("CpG coverage", "Methylation rate")
+colnames(tx) = c("min", "q25", "median", "q75", "max", "mean")
+library(xtable)
+print(xtable(tx, caption = "Statistics for CpG coverage and methylation rate"), table.placement = "h!")
+@

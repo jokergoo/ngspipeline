@@ -1,0 +1,122 @@
+#!/bin/perl/bin
+
+use File::Basename;
+
+my $dir = dirname($0);
+
+if(scalar(@ARGV) == 0) {
+	print_msg();
+	exit;
+}
+
+my $tool = shift @ARGV;
+$tool = lc($tool);
+
+if($tool eq "bismark") {
+
+	system("perl $dir/WGBS_pipeline.pl @ARGV --tool bismark");
+	
+} elsif($tool eq "bsmap") {
+
+	system("perl $dir/WGBS_pipeline.pl @ARGV --tool bsmap");
+
+} elsif($tool eq "methyctools") {
+
+	system("perl $dir/WGBS_pipeline.pl @ARGV --tool methyctools");
+
+} elsif($tool eq "tophat") {
+
+	system("perl $dir/RNASeq_pipeline.pl @ARGV --tool tophat");
+
+} elsif($tool eq "star") {
+
+	system("perl $dir/RNASeq_pipeline.pl @ARGV --tool star");
+
+} elsif($tool eq "gsnap") {
+
+	system("perl $dir/RNASeq_pipeline.pl @ARGV --tool gsnap");
+
+} elsif($tool eq "defuse") {
+
+	system("perl $dir/RNASeq_pipeline.pl @ARGV --tool defuse");
+
+} elsif($tool eq "fusionmap") {
+	
+	system("perl $dir/RNASeq_pipeline.pl @ARGV --tool fusionmap");
+
+} elsif($tool eq "fusionhunter") {
+
+	system("perl $dir/RNASeq_pipeline.pl @ARGV --tool fusionhunter");
+
+} elsif($tool eq "testdata") {
+	
+	system("perl $dir/create_test_data.pl @ARGV");
+
+} elsif($tool eq "sampellist") {
+
+	system("perl get_sample_list_from_std_dir.pl @ARGV");
+
+} else {
+
+	print STDERR "Cannot find pipeline for $tool.\n";
+	print_msg();
+	exit;
+}
+
+sub print_msg {
+
+	print <<MSG;
+Simple NGS Pipelines.
+
+  ngs <pipeline name> <options>
+  
+Contace:
+
+  Zuguang Gu <z.gu\@dkfz.de>
+
+Supported pipelines:
+
+whole genome bisulfite sequencing:
+  
+  bismark
+  bsmap
+  methyctools
+  
+In above three WGBS pipelines, basic steps are:
+  
+  1. FastQC on original fastq files
+  2. trim adapters and low quality bases
+  3. FastQC on trimmed fastq files
+  4. alignment
+  5. merge multiple lanes (if available) and remove duplications
+  6. methylation calling by BisSNP
+  7. save methylation profile into RData (bsseq object)
+  8. generate detailed pipeline report in PDF format
+  
+RNA sequencing:
+
+  tophat
+  star
+  gsnap
+  
+In above three RANseq pipelines, basic steps are:
+
+  1. FastQC on original fastq files
+  2. trim adapters and low quality bases, as well as poly-A tails
+  3. FastQC on trimmed fastq files
+  4. alignment
+  5. detailed QC by RNASeQC
+  6. counting and RPKM
+  
+Gene fusion based on RNA sequencing
+
+  defuse
+  fusionmap
+  fusionhunter
+  
+In above three GF pipelines, they are only one-step pipeline.
+  
+  1. gene fusion finding
+	
+MSG
+}

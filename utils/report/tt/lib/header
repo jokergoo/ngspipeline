@@ -1,0 +1,18 @@
+
+\documentclass{article}
+
+\title{Quality control report for [% sample_id.replace("_", "\\_") %]}
+\usepackage[margin=1.5in]{geometry}
+
+\usepackage{Sweave}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subfigure}
+
+\begin{document}
+
+\author{Contact: {\tt <z.gu@dkfz.de>}}
+\maketitle 
+
+[% PROCESS R_function %]

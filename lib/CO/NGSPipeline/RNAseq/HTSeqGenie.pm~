@@ -1,0 +1,80 @@
+package NGSPipeline::RNAseq::HTSeqGenie;
+
+use strict;
+use NGSPipeline::RNAseq::Config;
+use NGSPipeline::Utils;
+use File::Temp qw/tempfile/;
+
+use base qw(NGSPipeline::Common);
+
+sub new {
+	my $class = shift;
+	$class = ref($class) ? ref($class) : $class;
+	
+	my $pipeline = shift;
+	
+	my $self = {"pipeline" => $pipeline};
+	
+	return bless $self, $class;
+}
+
+sub align {
+	my $self = shift;
+	
+	my %param = ( "fastq1" => undef,
+	              "fastq2" => undef,
+				  "sample_id" => "sample",
+				  "delete_input" => 0,
+				  @_);
+	
+	my $fastq1 = to_abs_path($param{fastq1});
+	my $fastq2 = to_abs_path($param{fastq2});
+	my $delete_input = $param{delete_input};
+	my $sample_id = $param{sample_id};
+	
+	my $pipeline = $self->{pipeline};
+	
+	my $chunk_size = 100000;
+	my $R = <<RCODE;
+	
+library(HTSeqGenie)
+dir = runPipeline(
+	path.gsnap_genomes="/icgc/lsdf/mb/analysis/guz/RNA_seq/HTSeqGenie",
+	alignReads.genome="hg19",
+	path.genomic_features="/icgc/lsdf/mb/analysis/guz/RNA_seq/HTSeqGenie", 
+	countGenomicFeatures.gfeatures="gf.RData",
+	input_file="$fastq1", 
+	input_file2="$fastq2", 
+	num_cores=8,
+	paired_ends=TRUE, 
+	quality_encoding="illumina1.8",
+	chunk_size = 1e5
+	save_dir="$pipeline->{dir}/results", 
+	prepend_str = "$sample_id", 
+	overwrite_save_dir = "erase",
+	analyzeVariants.do = FALSE,
+
+RCODE
+
+	my ($tmp_fh, $tmp_file) = tempfile(DIR => $pipeline->{tmp_dir}, SUFFIX => '.R');
+	
+	$tmp_file = to_abs_path($tmp_file);
+	
+	print $tmp_fh $R;
+	close $tmp_fh;
+	
+	$pipeline->add_command("nlines=\$(zcat $fastq1 | wc -l)");
+	$pipeline->add_command("nchunk=\$((nlines/4/$chunk_size))", 0);
+	$pipeline->add_command("echo \"max_nbchunks=\$nchunk)\" >> $tmp_file", 0);
+	$pipeline->add_command("Rscript $tmp_file 1>$pipeline->{log_dir}/stdout.log 2>$pipeline->{log_dir}/stderr.log");
+	
+	my $qid = $pipeline->run("-N" => $pipeline->get_job_name ? $pipeline->get_job_name : "_htseqgenie_align",
+							 "-l" => { nodes => "1:ppn=4:lsdf", 
+									    mem => "60GB",
+										walltime => "150:00:00"});
+
+	return($qid);
+
+}
+
+1;
