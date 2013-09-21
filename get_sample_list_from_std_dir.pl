@@ -6,7 +6,7 @@ BEGIN {
 }
 
 use strict;
-use CO::NGSPipeline::Utils;
+use CO::Utils;
 use File::Basename;
 use List::Vectorize;
 
@@ -77,7 +77,6 @@ children directories.
 (e.g. if you have tumour/ and normal/, tumor/ will be ignored. This issue
 will be fixed in the future.)
 
-  The symbolic link will be resolved to the absolute path.
 	
 MSG
 }

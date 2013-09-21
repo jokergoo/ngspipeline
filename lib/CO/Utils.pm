@@ -41,7 +41,7 @@ sub children_dir {
 		if(-d $child) {
 			$hash->{basename($child)} = children_dir($child);
 		} elsif(-l $child) {
-			$hash->{abs_path($child)} = 1
+			$hash->{$child} = 1
 		} else {
 			$hash->{$child} = 1;
 		}
