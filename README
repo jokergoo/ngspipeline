@@ -1,0 +1,73 @@
+Light weight NGS pipeline maker.
+
+classes:
+
+CO::PipelineMaker
+  - write commands into shell script.
+  - add job checking in shell script.
+  - add job flags
+  - handle job dependency
+  - submit by qsub
+  
+CO::NGSPipeline::Tool
+  - independent units in NGS pipeline
+  
+  CO::NGSPipeline::Tool::Common
+    - common methods such as fastqc, trim, bwa aln, picard, ...
+	
+  CO::NGSPipeline::Tool::Config
+    - global variables for common methods
+  
+  CO::NGSPipeline::Tool::BSseq
+     - methods for WGBS seq pipeline
+	 
+	 CO::NGSPipeline::Tool::BSseq::Common
+	   - common methods for WGBS pipeline, such as bsqc, save data as RData
+	 
+	 CO::NGSPipeline::Tool::BSseq::Config
+	   - global variables for WGBS seq pipeline
+	 
+	 CO::NGSPipeline::Tool::BSseq::Bismark
+	   - methods for Bismark pipeline
+	 
+	 CO::NGSPipeline::Tool::BSseq::BSMAP
+	   - methods for BSMAP pipeline
+	 
+	 CO::NGSPipeline::Tool::BSseq::methylCtools
+	   - methods for methylCtools pipeline
+	 
+	 CO::NGSPipeline::Tool::BSseq::BisSNP
+	   - methods for BisSNP pipeline
+	   
+  CO::NGSPipeline::Tool::RNAseq
+    - methods for RNA seq pipeline
+	 
+	 CO::NGSPipeline::Tool::RNAseq::Common
+	   - common methods for RNA seq pipeline, such as rnaqc
+	 
+	 CO::NGSPipeline::Tool::RNAseq::Config
+	   - global variables for RNA seq pipeline
+	 
+	 CO::NGSPipeline::Tool::RNAseq::GeneFusion
+	   - methods for gene fusion pipeline
+	 
+	 CO::NGSPipeline::Tool::RNAseq::GSNAP
+	   - mehthods for GSNAP pipeline
+	 
+	 CO::NGSPipeline::Tool::RNAseq::STAR
+	   - methods for STAR pipeline
+	 
+	 CO::NGSPipeline::Tool::RNAseq::TopHat
+	   - methods for TopHat pipeline
+  
+CO::NGSPipeline::Pipeline::
+  - integrated pipelines which is a collection of methods from CO::NGSPipeline::Tool:: 
+  
+CO::NGSPipeline::Report::
+  - pipeline report
+  
+CO::NGSPipeline::Getopt
+  - print help message and validate input
+  
+CO::Utils
+  - util methods for all CO classes
