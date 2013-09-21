@@ -1,6 +1,7 @@
 package CO::NGSPipeline::Pipeline::BSMAP;
 
 use strict;
+use File::Basename;
 use base qw/CO::NGSPipeline/;
 
 sub new {
@@ -178,7 +179,6 @@ sub run {
 			dir    => $pm->{dir},
 			tool   => "bsmap",
 			sample => "$sample_id",
-			base_dir => $SCRIPT_DIR,
 		);
 		
 		for my $chr (map {"chr$_"} (1..22, "X", "Y")) {

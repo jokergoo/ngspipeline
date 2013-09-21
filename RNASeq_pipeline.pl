@@ -5,12 +5,18 @@ BEGIN {
 	unshift(@INC, dirname($0)."/lib");
 }
 
-my $SCRIPT_DIR = dirname($0);
-
 use strict;
-use CO::NGSPipeline;
+use CO::PipelineMaker;
 use File::Basename;
 use CO::NGSPipeline::Getopt;
+
+use CO::NGSPipeline::Pipeline::GSNAP;
+use CO::NGSPipeline::Pipeline::TopHat;
+use CO::NGSPipeline::Pipeline::STAR;
+use CO::NGSPipeline::Pipeline::deFuse;
+use CO::NGSPipeline::Pipeline::FusionMap;
+use CO::NGSPipeline::Pipeline::FusionHunter;
+use CO::NGSPipeline::Pipeline::TopHatFusion;
 
 my $opt = CO::NGSPipeline::Getopt->new;
 
@@ -75,7 +81,7 @@ foreach my $sample_id (sort keys %$sample) {
 	my $r2 = $sample->{$sample_id}->{r2};
 	my $library = $sample->{$sample_id}->{library};
 
-	my $pipeline = CO::NGSPipeline->new(dir => "$wd/$sample_id",
+	my $pm = CO::PipelineMaker->new(dir => "$wd/$sample_id",
 	                                enforce => $enforce,
 									do_test => $do_test,
 									filesize => $filesize);
@@ -83,10 +89,10 @@ foreach my $sample_id (sort keys %$sample) {
 	# prefix means absolute path without fast/fq or fast.gz/fq.gz
 	our $prefix1 = basename($r1->[0]);
 	$prefix1 =~s/\.(fq|fastq)(\.gz)?$//;
-	$prefix1 = "$pipeline->{dir}/$prefix1";
+	$prefix1 = "$pm->{dir}/$prefix1";
 	our $prefix2 = basename($r2->[0]);
 	$prefix2 =~s/\.(fq|fastq)(\.gz)?$//;
-	$prefix2 = "$pipeline->{dir}/$prefix2";
+	$prefix2 = "$pm->{dir}/$prefix2";
 	
 	
 	my $pipeline;

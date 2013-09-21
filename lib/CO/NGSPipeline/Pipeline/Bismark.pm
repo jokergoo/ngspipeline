@@ -1,6 +1,7 @@
 package CO::NGSPipeline::Pipeline::Bismark;
 
 use strict;
+use File::Basename;
 use base qw/CO::NGSPipeline/;
 
 sub new {
@@ -203,7 +204,6 @@ sub run {
 			dir    => $pipeline->{dir},
 			tool   => "bismark",
 			sample => "$sample_id",
-			base_dir => $SCRIPT_DIR,
 		);
 		
 		for my $chr (map {"chr$_"} (1..22, "X", "Y")) {

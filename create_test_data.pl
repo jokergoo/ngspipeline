@@ -1,27 +1,68 @@
 #!/bin/perl/bin
 use strict;
 
+BEGIN {
+	use File::Basename;
+	unshift(@INC, dirname($0)."/lib");
+}
+
 ###########################
 # usage:
-#   perl createtestdata.pl -i fastq -s start -k n_records -o output
+#   perl create_testdata.pl --input fastq --output output --start start --records n
 
 if(! scalar(@ARGV)) {
 	print <<USAGE;
-Extract the first n sequences from the FASTQ file.
+Extract n sequences from the FASTQ file.
 
 Usage:
 
-  zcat xx.fq.gz | perl create_test_data.pl -n 100000 | gzip > test.fq.gz
+  perl create_testdata.pl --input fastq --output output --start start --records n
   
-  -n Number of sequences to extract, default is 20
-  -f FASTQ file. If not -f option is set, it will read from STDIN.
-
-The script expects uncompressed fastq file and write fastq file to STDOUT, 
-so you should put the command in pipes.
+  --input   FastQ file
+  --output  test FastQ file
+  --start   Which read to start
+  --records How many reads do you want
   
 USAGE
 	
 	exit 0;
 }
 
+use CO::FastQ;
+
+my $fastq;
+my $output;
+my $start = 1;
+my $n_records = 10000;
+
+GetOptions( "input=s" => \$fastq,
+            "output=s" => \$output;
+			"start=i" => \$start,
+			"records=i" => \$n_records) or die;
+			
+my $fastq = CO::FastQ->new(file => $fastq);
+
+my $fh;
+if(-p $output) {
+	sysopen($fh, "$output", O_WRONLY);
+} elsif($output =~/\.gz$/) {
+	open $fh, " | gzip -c > $output" or die "cannot create pipe to gzip\n";
+} else {
+	open $fh, ">$output" or die "cannot create $output\n";
+}
+	
+my $i_processed = 0;
+while(my $read = $fastq->next) {
+	
+	if($fastq->i < $start) {
+		next;
+	}
+	
+	print $fh $read->record;
+	
+	if($i_processed >= $n_records) {
+		last;
+	}
+}
+close $fh;
 

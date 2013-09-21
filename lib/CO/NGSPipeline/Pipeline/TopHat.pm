@@ -1,6 +1,7 @@
 package CO::NGSPipeline::Pipeline::TopHat;
 
 use strict;
+use File::Basename;
 use base qw/CO::NGSPipeline/;
 
 sub new {
@@ -14,9 +15,9 @@ sub new {
 
 sub run {
 	
-	my $self = shift;
+	my $pipeline = shift;
 	
-	my $pm = $self->get_pipeline_maker;
+	my $pm = $pipeline->get_pipeline_maker;
 	unless(defined($pm)) {
 		die "pipeline maker should be defined in a pipeline.\n";
 	}
@@ -52,46 +53,46 @@ sub run {
 	###################################################################
 	# fastqc
 	###################################################################
-	$pm->set_job_name("$sample_id"."_tophat_fastqc_r1_$i");
+	$pm->set_job_name("$sample_id"."_tophat_fastqc_r1");
 	$qid->{fastqc_r1} = $pipeline->tophat->fastqc(
 			fastq      => $r1_fastq,
-			output_dir => "$pm->{dir}/fastqc_r1_$i"
+			output_dir => "$pm->{dir}/fastqc_r1"
 	);
 
-	$pm->set_job_name("$sample_id"."_tophat_fastqc_r2_$i");
+	$pm->set_job_name("$sample_id"."_tophat_fastqc_r2");
 	$qid->{fastqc_r2} = $pipeline->tophat->fastqc(
 			fastq      => $r2_fastq,
-			output_dir => "$pm->{dir}/fastqc_r2_$i"
+			output_dir => "$pm->{dir}/fastqc_r2"
 	);
 
 	####################################################################
 	# trim
 	####################################################################
-	$pm->set_job_name("$sample_id"."_tophat_trimmed_$i");
+	$pm->set_job_name("$sample_id"."_tophat_trimmed");
 	$qid->{trim} = $pipeline->tophat->trim(
 		fastq1  => $r1_fastq,
 		fastq2  => $r2_fastq,
-		output1 => "$prefix1.trimmed.$i.fastq.gz",
-		output2 => "$prefix2.trimmed.$i.fastq.gz",
+		output1 => "$prefix1.trimmed.fastq.gz",
+		output2 => "$prefix2.trimmed.fastq.gz",
 		polya   => 1,
 	);	
 				
 	###################################################################
 	# fastqc after trimming
 	###################################################################
-	$pm->set_job_name("$sample_id"."_tophat_fastqc_r1_trimmed_$i");
+	$pm->set_job_name("$sample_id"."_tophat_fastqc_r1_trimmed");
 	$pm->set_job_dependency($qid->{trim});
 	$qid->{fastqc_r1_trimmed} = $pipeline->tophat->fastqc(
-		fastq        => "$prefix1.trimmed.$i.fastq.gz",
-		output_dir   => "$pm->{dir}/fastqc_r1_trimmed_$i",
+		fastq        => "$prefix1.trimmed.fastq.gz",
+		output_dir   => "$pm->{dir}/fastqc_r1_trimmed",
 		delete_input => 0
 	);
 
-	$pm->set_job_name("$sample_id"."_tophat_fastqc_r2_trimmed_$i");
+	$pm->set_job_name("$sample_id"."_tophat_fastqc_r2_trimmed");
 	$pm->set_job_dependency($qid->{trim});
 	$qid->{fastqc_r2_trimmed} = $pipeline->tophat->fastqc(
-		fastq        => "$prefix2.trimmed.$i.fastq.gz",
-		output_dir   => "$pm->{dir}/fastqc_r2_trimmed_$i",
+		fastq        => "$prefix2.trimmed.fastq.gz",
+		output_dir   => "$pm->{dir}/fastqc_r2_trimmed",
 		delete_input => 0
 	);
 
@@ -101,12 +102,23 @@ sub run {
 	$pm->set_job_name("$sample_id"."_tophat_align");
 	$pm->set_job_dependency($qid->{trim});
 	$qid->{align} = $pipeline->tophat->align(
-		fastq1 => "$prefix1.trimmed.$i.fastq.gz",
-		fastq2 => "$prefix2.trimmed.$i.fastq.gz",
+		fastq1 => "$prefix1.trimmed.fastq.gz",
+		fastq2 => "$prefix2.trimmed.fastq.gz",
 		output => "$pm->{dir}/$sample_id.bam",
 		sample_id => $sample_id,
 		strand => $is_strand_specific,
 		delete_input => 1
+	);
+	
+	####################################################################
+	# flagstat
+	####################################################################
+	$pm->set_job_name("$sample_id"."_tophat_flagstat_$i");
+	$pm->set_job_dependency($qid->{align});
+	$qid->{flagstat} = $pipeline->tophat->samtools_flagstat(
+		sam          => "$pm->{dir}/$sample_id.bam",
+		output       => "$pm->{dir}/$sample_id.flagstat",
+		delete_input => 0
 	);
 
 	####################################################################

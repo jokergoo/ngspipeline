@@ -1,6 +1,7 @@
 package CO::NGSPipeline::Pipeline::FusionMap;
 
 use strict;
+use File::Basename;
 use base qw/CO::NGSPipeline/;
 
 sub new {

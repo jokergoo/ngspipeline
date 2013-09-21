@@ -1,6 +1,7 @@
 package CO::NGSPipeline::Pipeline::TopHatFusion;
 
 use strict;
+use File::Basename;
 use base qw/CO::NGSPipeline/;
 
 sub new {

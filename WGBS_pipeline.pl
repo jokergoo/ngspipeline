@@ -9,9 +9,15 @@ my $SCRIPT_DIR = dirname($0);
 
 use strict;
 
-use CO::NGSPipeline;
+use CO::PipelineMaker;
 use File::Basename;
 use CO::NGSPipeline::Getopt;
+
+use CO::NGSPipeline::Pipeline::Bismark;
+use CO::NGSPipeline::Pipeline::BSMAP;
+use CO::NGSPipeline::Pipeline::methylCtools;
+
+
 
 my $opt = CO::NGSPipeline::Getopt->new;
 

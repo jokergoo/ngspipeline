@@ -150,7 +150,7 @@ sub samtools_view {
 	
 	
 	$pm->del_file($input) if($delete_input);
-	my $qid = $pm->run("-N" => $pipeline->get_job_name ? $pm->get_job_name : "_common_samtools_view",
+	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_samtools_view",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "10GB",
 										walltime => "20:00:00"});

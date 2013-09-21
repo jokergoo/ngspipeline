@@ -1,6 +1,7 @@
 package CO::NGSPipeline::Pipeline::STAR;
 
 use strict;
+use File::Basename;
 use base qw/CO::NGSPipeline/;
 
 sub new {
@@ -112,7 +113,17 @@ sub run {
 		strand       => $is_strand_specific,
 		delete_input => 1,
 	);
-
+	
+	####################################################################
+	# flagstat
+	####################################################################
+	$pm->set_job_name("$sample_id"."_star_flagstat_$i");
+	$pm->set_job_dependency($qid->{align});
+	$qid->{flagstat} = $pipeline->star->samtools_flagstat(
+		sam          => "$pm->{dir}/$sample_id.bam",
+		output       => "$pm->{dir}/sample_id.flagstat",
+		delete_input => 0
+	);
 
 	####################################################################
 	# more detailed QC

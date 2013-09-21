@@ -8,6 +8,8 @@ use CO::Utils;
 use File::Basename;
 use File::Temp qw/tempfile/;
 
+use File::Basename;
+use CO::Utils;
 use base qw/CO::NGSPipeline/;
 
 sub bsqc {
@@ -16,7 +18,6 @@ sub bsqc {
 	my %param = ( "dir" => undef,
 	              "tool" => undef,
 	              "sample" => undef,
-	              "base_dir" => undef,
 				  @_);
 	
 	my $sample_dir    = to_abs_path( $param{dir} );
@@ -26,7 +27,8 @@ sub bsqc {
 	
 	my $pm = $self->get_pipeline_maker;
 	
-	$pm->add_command("perl $base_dir/utils/report/bs_report.pl --tool $tool --dir $sample_dir --sample $sample");
+	my $script_dir = to_abs_path(dirname(__FILE__)."/../../Report");
+	$pm->add_command("perl $script_dir/bs_report.pl --tool $tool --dir $sample_dir --sample $sample");
 
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_bsqc",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
