@@ -114,7 +114,7 @@ sub run {
 	####################################################################
 	# flagstat
 	####################################################################
-	$pm->set_job_name("$sample_id"."_tophat_flagstat_$i");
+	$pm->set_job_name("$sample_id"."_tophat_flagstat");
 	$pm->set_job_dependency($qid->{align});
 	$qid->{flagstat} = $pipeline->tophat->samtools_flagstat(
 		sam          => "$pm->{dir}/$sample_id.bam",

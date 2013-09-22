@@ -117,7 +117,7 @@ sub run {
 	####################################################################
 	# flagstat
 	####################################################################
-	$pm->set_job_name("$sample_id"."_star_flagstat_$i");
+	$pm->set_job_name("$sample_id"."_star_flagstat");
 	$pm->set_job_dependency($qid->{align});
 	$qid->{flagstat} = $pipeline->star->samtools_flagstat(
 		sam          => "$pm->{dir}/$sample_id.bam",

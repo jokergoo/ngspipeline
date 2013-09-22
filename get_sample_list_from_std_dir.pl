@@ -18,7 +18,7 @@ if(! @ARGV) {
 }
 
 unless( grep {~/^view-by-pid$/} split "\n", `ls $ARGV[0]` ){
-	die "'view-by-pid' should be the first level child directory under $ARGV[0].\n";
+	die "'view-by-pid/' should be the first level child directory under $ARGV[0].\n";
 }
 
 my $list = read_std_dir($ARGV[0]);
@@ -33,7 +33,7 @@ if(any(sapply($type, sub { len($_[0]) > 1 }))) {
 }
 
 for(my $i = 0; $i < len($pid); $i ++) {
-	for(my $j = 0; $j < len($tpye->[$i])) {
+	for(my $j = 0; $j < len($type->[$i]); $j ++) {
 		for(my $k = 0; $k < len($r1->[$i]->[$j]); $j ++) {
 			if($need_type) {
 				print "$r1->[$i]->[$j]->[$k]\t$r2->[$i]->[$j]->[$k]\t$pid->[$i]_$type->[$i]->[$j]\n";
@@ -67,7 +67,7 @@ sub read_std_dir {
 	for(my $i = 0; $i < len($pid); $i ++) {
 		my $type->[$i] = [ keys %{$tree->{"view-by-pid"}->{$pid->[$i]}} ];
 		
-		for(my $j = 0; $j < len($tpye->[$i]); $j ++) {
+		for(my $j = 0; $j < len($type->[$i]); $j ++) {
 			my @lanes = keys %{$tree->{"view-by-pid"}->{$pid->[$i]}->{$type->[$i]->[$j]}->{paired}};
 			
 			for(my $k = 0; $k < scalar(@lanes); $k ++) {
@@ -75,7 +75,7 @@ sub read_std_dir {
 			}
 		}
 	}
-	return {pid => $pid, tpye => $type, r1 => $r1, r2 => $r2};
+	return {pid => $pid, type => $type, r1 => $r1, r2 => $r2};
 }
 
 sub help_msg {
@@ -89,8 +89,8 @@ child directories.
   
   The script assumes your directory structure as:
     
-    view-by-pid/\$PID/\$type/paired/\$lane/sequence/$r1_fastq
-	view-by-pid/\$PID/\$type/paired/\$lane/sequence/$r2_fastq
+    view-by-pid/\$PID/\$type/paired/\$lane/sequence/\$r1_fastq
+	view-by-pid/\$PID/\$type/paired/\$lane/sequence/\$r2_fastq
 	
 MSG
 }

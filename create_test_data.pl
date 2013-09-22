@@ -29,6 +29,7 @@ USAGE
 }
 
 use CO::FastQ;
+use Fcntl;
 
 my $fastq;
 my $output;
@@ -36,7 +37,7 @@ my $start = 1;
 my $n_records = 10000;
 
 GetOptions( "input=s" => \$fastq,
-            "output=s" => \$output;
+            "output=s" => \$output,
 			"start=i" => \$start,
 			"records=i" => \$n_records) or die;
 			
