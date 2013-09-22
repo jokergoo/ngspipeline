@@ -68,7 +68,7 @@ sub print_msg {
 	print <<MSG;
 Simple NGS Pipelines.
 
-  ngs <pipeline name> <options>
+  ngsp <pipeline name> <options>
   
 Contace:
 
