@@ -182,19 +182,25 @@ Integrated pipelines which is a collection of methods from `CO::NGSPipeline::Too
 ### `CO::NGSPipeline`
 This class provides 'shortcut' methods to call real methods in `CO::NGSPipeline::Tool`
 namespace. For example, we already had a method called `align` in `CO::NGSPipeline::Tool::BSseq::BSMAP`.
-In order to use this methed in a pipeline. You do not need to initialize the object
+In order to use this methed in a pipeline, you do not need to initialize the object
 and deal with PipelineMaker stuff. Just using the 'shortcut' method:
 
     $pipeline->bsmap->align(@param);
 	
 in which `$pipeline` is a pipeline object and should be initialized with
-a pipeline maker object.
+a pipeline maker object. `$pipeline->bsmap` is a shortcut method which will initialize 
+a `CO::NGSPipeline::Tool::BSseq::BSMAP` object and attach the pipeline maker object, 
+finally you can call `align` method on this BSMAP object.
   
 ### `CO::NGSPipeline::Report`
 Scirpts for pipeline report, currently only reports for WGBS pipeline.
   
 ### `CO::NGSPipeline::Getopt`
-Print help message and validate input
+All established pipelines need paired-end FastQ files, so we need pathes of FastQ
+files and the sample names. Also, working directory as well as some running mode
+are common for all pipelines. Therefore, this class take charge of command line
+parameters, construct and print help messages, validate parameters and finally
+returns validated and transformed variables.
   
 ## `CO::Utils`
 Util methods for all `CO` classes
