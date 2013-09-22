@@ -17,16 +17,31 @@ if(! @ARGV) {
 	exit 0;
 }
 
+unless( grep {~/^view-by-pid$/} split "\n", `ls $ARGV[0]` ){
+	die "'view-by-pid' should be the first level child directory under $ARGV[0].\n";
+}
+
 my $list = read_std_dir($ARGV[0]);
 my $pid = $list->{pid};
+my $type = $list->{tpye};
 my $r1 = $list->{r1};
 my $r2 = $list->{r2};
 
-for(my $i = 0; $i < scalar(@{$pid}); $i ++) {
-	for(my $j = 0; $j < scalar(@{$r1->[$i]}); $j ++) {
-		print "$r1->[$i]->[$j]\t$r2->[$i]->[$j]\t$pid->[$i]\n";
-	}
+my $need_type = 0;
+if(any(sapply($type, sub { len($_[0]) > 1 }))) {
+	$need_type = 1;
+}
 
+for(my $i = 0; $i < len($pid); $i ++) {
+	for(my $j = 0; $j < len($tpye->[$i])) {
+		for(my $k = 0; $k < len($r1->[$i]->[$j]); $j ++) {
+			if($need_type) {
+				print "$r1->[$i]->[$j]->[$k]\t$r2->[$i]->[$j]->[$k]\t$pid->[$i]_$type->[$i]->[$j]\n";
+			} else {
+				print "$r1->[$i]->[$j]->[$k]\t$r2->[$i]->[$j]->[$k]\t$pid->[$i]\n";
+			}
+		}
+	}
 }
 
 sub read_std_dir {
@@ -41,23 +56,26 @@ sub read_std_dir {
 	
 	if(!exists($tree->{"view-by-pid"})) {
 		help_msg();
-		die "cannot find view-by-pid directory in $dir\n";
+		die "cannot find view-by-pid/ directory in $dir\n";
 	}
 	
 	my $pid = [ keys %{$tree->{"view-by-pid"}} ];
 	my $r1 = [];
 	my $r2 = [];
+	my $type = [];
 	
-	for(my $i = 0; $i < scalar(@$pid); $i ++) {
-		my $type = (keys %{$tree->{"view-by-pid"}->{$pid->[$i]}})[0];
+	for(my $i = 0; $i < len($pid); $i ++) {
+		my $type->[$i] = [ keys %{$tree->{"view-by-pid"}->{$pid->[$i]}} ];
 		
-		my @lanes = keys %{$tree->{"view-by-pid"}->{$pid->[$i]}->{$type}->{paired}};
-		
-		for(my $j = 0; $j < scalar(@lanes); $j ++) {
-			($r1->[$i]->[$j], $r2->[$i]->[$j]) = keys %{$tree->{"view-by-pid"}->{$pid->[$i]}->{$type}->{paired}->{$lanes[$j]}->{sequence}};
+		for(my $j = 0; $j < len($tpye->[$i]); $j ++) {
+			my @lanes = keys %{$tree->{"view-by-pid"}->{$pid->[$i]}->{$type->[$i]->[$j]}->{paired}};
+			
+			for(my $k = 0; $k < scalar(@lanes); $k ++) {
+				($r1->[$i]->[$j]->[$k], $r2->[$i]->[$j]->[$k]) = keys %{$tree->{"view-by-pid"}->{$pid->[$i]}->{$type->[$i]->[$j]}->{paired}->{$lanes[$k]}->{sequence}};
+			}
 		}
 	}
-	return {pid => $pid, r1 => $r1, r2 => $r2};
+	return {pid => $pid, tpye => $type, r1 => $r1, r2 => $r2};
 }
 
 sub help_msg {
@@ -66,17 +84,13 @@ Usage:
   
   perl $0 /your/standard/fastq/file/dir > list
   
-  The specified directory must contain /core and /view-by-pid as two nearest
-children directories.
+  The specified directory must contain core/ and view-by-pid/ as two nearest
+child directories.
   
   The script assumes your directory structure as:
     
-    view-by-pid/\$PID/\$type/paired/\$lane/sequence/\$fastqfile
-  
-  Currently we only use the first \$type directory in view-by-pid/\$PID/
-(e.g. if you have tumour/ and normal/, tumor/ will be ignored. This issue
-will be fixed in the future.)
-
+    view-by-pid/\$PID/\$type/paired/\$lane/sequence/$r1_fastq
+	view-by-pid/\$PID/\$type/paired/\$lane/sequence/$r2_fastq
 	
 MSG
 }

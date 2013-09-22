@@ -103,6 +103,7 @@ foreach my $sample_id (sort keys %$sample) {
 	}
 	
 	$pipeline->set_pipeline_maker($pm);
+	# passing parameters for the pipeline
 	$pipeline->run(sample_id => $sample_id,
 		               r1 => $r1,
 					   r2 => $r2,

@@ -20,8 +20,8 @@ Usage:
   
   --input   FastQ file
   --output  test FastQ file
-  --start   Which read to start
-  --records How many reads do you want
+  --start   Which read to start (default: 1)
+  --records How many reads do you want (default: 10000)
   
 USAGE
 	

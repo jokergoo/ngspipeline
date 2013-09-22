@@ -23,7 +23,7 @@ a NGS pipeline. When it is fully tested, it can be immigrated to more stronger
 pipeline administrators such as `Roddy`.
 
 In this repository, there is a `CO::PipelineMaker` class which do the pipeline
-maker stuff and 'CO:::NGSPipeline` classes which implement tools and pipelines
+maker stuff and `CO:::NGSPipeline` classes which implement tools and pipelines
 for WGBS pipeline and RNAseq pipeline.
 
 ## `CO::PipelineMaker`
@@ -68,7 +68,7 @@ this job and you can use it to set next job's dependency.
 Normally, for a NGS step, I will embed above codes into a single subroutine. 
 Examples can be found under `CO::NGSPipeline::Tool` classes.
 
-## `CO::NGSPipeline` classes
+## `CO::NGSPipeline` namespace
 
 There are two classes in this namespace. `CO::NGSPipeline::Tool` defines
 independent jobs and `CO::NGSPipeline::Pipeline` defines pipelines by integrating
@@ -84,7 +84,7 @@ common methods which is base class of more specific classes. Also, there is a
 - fastqc
 - trim
 - sort sam/bam
-- samtools view`
+- samtools view
 - merge and remove duplicates
 - flagstat
 - bwa aln
@@ -139,7 +139,7 @@ Methods for methylCtools pipeline, including:
 
 #### `CO::NGSPipeline::Tool::BSseq::Bsmooth`
 
-- save methylation into RData
+- save methylation as RData for downstream DMR calling
 
 ### `CO::NGSPipeline::Tool::RNAseq`
 Methods for RNAseq pipeline
@@ -178,6 +178,17 @@ Methods for TopHat pipeline
  
 ### `CO::NGSPipeline::Pipeline`
 Integrated pipelines which is a collection of methods from `CO::NGSPipeline::Tool`
+
+### `CO::NGSPipeline`
+This class provides 'shortcut' methods to call real methods in `CO::NGSPipeline::Tool`
+namespace. For example, we already had a method called `align` in `CO::NGSPipeline::Tool::BSseq::BSMAP`.
+In order to use this methed in a pipeline. You do not need to initialize the object
+and deal with PipelineMaker stuff. Just using the 'shortcut' method:
+
+    $pipeline->bsmap->align(@param);
+	
+in which `$pipeline` is a pipeline object and should be initialized with
+a pipeline maker object.
   
 ### `CO::NGSPipeline::Report`
 Scirpts for pipeline report, currently only reports for WGBS pipeline.
