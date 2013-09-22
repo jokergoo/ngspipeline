@@ -1,3 +1,4 @@
 - add report for RNA seq pipeline
 - add trimming report for WGBS and RNA seq pipeline
 - add docs
+- put common configuration in CO::NGSpipeline::Tool::Config
