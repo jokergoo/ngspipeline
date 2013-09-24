@@ -85,8 +85,7 @@ foreach my $sample_id (sort keys %$sample) {
 	my $pm = CO::PipelineMaker->new(dir => "$wd/$sample_id",
 	                                enforce => $enforce,
 									do_test => $do_test,
-									filesize => $filesize,
-									prefix => $prefix,);
+									filesize => $filesize);
 	
 	my $pipeline;
 	if($tool eq "bismark") {

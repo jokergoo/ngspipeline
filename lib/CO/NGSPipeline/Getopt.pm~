@@ -47,7 +47,6 @@ sub reset_opt {
 	my $ref5 = \1;
 	my $ref6 = \1;
 	my $ref7 = \1;
-	my $ref8 = \1;
 	
 	$opt->add($ref0, "help", "print help message and exit");
 	$opt->add($ref1, "list=s", "sample list, containing columns which are: 1. sample name. 2. fastq file for paired end 1, should be gzipped; 3. fastq file for paired end 2, should be gzipped; 4. if from multiple lanes, whether they come from the same libraries or not. (any type of strings to represent category of libraries, optional. Now it is only workable for WGBS pipeline.)");
@@ -57,7 +56,6 @@ sub reset_opt {
 	$opt->add($ref5, "enforce", "enforce to re-run pipeline from the beginning no matter they were successfully finished or not.");
 	$opt->add($ref6, "filesize=i", "If size of some output files (e.g. bam files, methylation calling files) are smaller than this value, then step is terminated. Default is 1M (1024*1024). Set it to zero or non-number strings to shut down file size checking.");
 	$opt->add($ref7, "test", "testing mode");
-	$opt->add($ref8, "prefix", "prefix added to job names"
 	
 	return $opt;
 }

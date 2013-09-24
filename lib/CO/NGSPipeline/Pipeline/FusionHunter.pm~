@@ -66,9 +66,8 @@ sub run {
 	
 	$pm->set_job_name("$sample_id"."_fusionhunter");
 	$qid = $pipeline->genefusion->fusionhunter(
-		fastq1 => "$prefix1.trimmed.fastq",
-		fastq2 => "$prefix2.trimmed.fastq",
-		delete_input => 1,
+		fastq1 => $r1_fastq,
+		fastq2 => $r2_fastq
 	);
 }
 1;

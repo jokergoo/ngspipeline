@@ -62,17 +62,9 @@ OutputName=$sample_id
 CONFIG
 	close OUT;
 	
-	if($fastq1 =~/\.gz$/) {
-		$pm->add_command("zcat -c $fastq1 > $pm->{dir}/fastq1", 0);
-	} else {
-		$pm->add_command("ln -s $fastq1 $pm->{dir}/fastq1", 0);
-	}
-	if($fastq2 =~/\.gz$/) {
-		$pm->add_command("zcat -c $fastq2 > $pm->{dir}/fastq2", 0);
-	} else {
-		$pm->add_command("ln -s $fastq2 $pm->{dir}/fastq2", 0);
-	}
-	
+	$pm->add_command("zcat -c $fastq1 > $pm->{dir}/fastq1", 0);
+	$pm->add_command("zcat -c $fastq2 > $pm->{dir}/fastq2", 0);
+		
 	$pm->add_command("mono $FUSIONMAP_BIN_DIR/FusionMap.exe --semap $FUSIONMAP_DIR Human.B37 RefGene $pm->{dir}/secontrol.txt");
 	$pm->add_command("rm $pm->{dir}/fastq1", 0);
 	$pm->add_command("rm $pm->{dir}/fastq2", 0);
@@ -287,17 +279,8 @@ readthrough_output = $pm->{dir}/FusionHunter.readthrough
 CONFIG
 	close OUT;
 	
-	
-	if($fastq1 =~/\.gz$/) {
-		$pm->add_command("zcat -c $fastq1 > $pm->{dir}/fastq1", 0);
-	} else {
-		$pm->add_command("ln -s $fastq1 $pm->{dir}/fastq1", 0);
-	}
-	if($fastq2 =~/\.gz$/) {
-		$pm->add_command("zcat -c $fastq2 > $pm->{dir}/fastq2", 0);
-	} else {
-		$pm->add_command("ln -s $fastq2 $pm->{dir}/fastq2", 0);
-	}
+	$pm->add_command("zcat -c $fastq1 > $pm->{dir}/fastq1", 0);
+	$pm->add_command("zcat -c $fastq2 > $pm->{dir}/fastq2", 0);
 	
 	$pm->add_command("cd $pm->{dir}/results", 0);
  	$pm->add_command("perl $FUSIONHUNTER_BIN_DIR/FusionHunter.pl FusionHunter.cfg");

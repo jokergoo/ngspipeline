@@ -1,4 +1,4 @@
-package CO::NGSPipeline::Pipeline::FusionHunter;
+package CO::NGSPipeline::Pipeline::deFuse;
 
 use strict;
 use File::Basename;
@@ -46,6 +46,7 @@ sub run {
 	$prefix2 = "$pm->{dir}/$prefix2";
 	
 	
+	
 	my $qid;
 
 	my $r1_fastq = $r1->[0];
@@ -55,20 +56,21 @@ sub run {
 	####################################################################
 	# trim
 	####################################################################
-	$pm->set_job_name("$sample_id"."_fusionhunter_trimmed");
-	$qid->{trim} = $pipeline->fusionhunter->trim(
+	$pm->set_job_name("$sample_id"."_star_trimmed");
+	$qid->{trim} = $pipeline->star->trim(
 		fastq1  => $r1_fastq,
 		fastq2  => $r2_fastq,
-		output1 => "$prefix1.trimmed.fastq",
-		output2 => "$prefix2.trimmed.fastq",
+		output1 => "$prefix1.trimmed.fastq.gz",
+		output2 => "$prefix2.trimmed.fastq.gz",
 		polya   => 1,
 	);	
-	
-	$pm->set_job_name("$sample_id"."_fusionhunter");
-	$qid = $pipeline->genefusion->fusionhunter(
-		fastq1 => "$prefix1.trimmed.fastq",
-		fastq2 => "$prefix2.trimmed.fastq",
+				
+	$pm->set_job_name("$sample_id"."_defuse");
+	$qid = $pipeline->genefusion->defuse(
+		fastq1 => "$prefix1.trimmed.fastq.gz",
+		fastq2 => "$prefix2.trimmed.fastq.gz",
 		delete_input => 1,
 	);
 }
+
 1;

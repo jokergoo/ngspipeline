@@ -90,10 +90,10 @@ foreach my $sample_id (sort keys %$sample) {
 									prefix => $prefix,);
 
 	# prefix means absolute path without fast/fq or fast.gz/fq.gz
-	my $prefix1 = basename($r1->[0]);
+	our $prefix1 = basename($r1->[0]);
 	$prefix1 =~s/\.(fq|fastq)(\.gz)?$//;
 	$prefix1 = "$pm->{dir}/$prefix1";
-	my $prefix2 = basename($r2->[0]);
+	our $prefix2 = basename($r2->[0]);
 	$prefix2 =~s/\.(fq|fastq)(\.gz)?$//;
 	$prefix2 = "$pm->{dir}/$prefix2";
 	

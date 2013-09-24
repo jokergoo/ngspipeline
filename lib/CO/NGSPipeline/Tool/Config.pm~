@@ -23,11 +23,11 @@ our @EXPORT = qw($BWA
 				 $GENOME_1KG
                  );
 
-our $BWA = 'bwa-0.6.2-tpx';
-our $CNYBWA = 'cnybwa-0.6.2';
-our $PICARD_BIN_DIR = '/ibios/tbi_cluster/11.4/x86_64/picard/picard-tools';
+our $BWA = "bwa-0.6.2-tpx";
+our $CNYBWA = "cnybwa-0.6.2";
+our $PICARD_BIN_DIR = "/ibios/tbi_cluster/11.4/x86_64/picard/picard-tools";
 
-our $TRIMPAIR_BIN_DIR = '/ibios/co02/guz/program/general/pairTrim';
+our $TRIMPAIR_BIN_DIR = "/ibios/co02/guz/program/general/pairTrim";
 
 
 our $BOWTIE_INDEX = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/indexes/bowtie/bowtie1_hg19_chr/hg19_1-22_X_Y_M';

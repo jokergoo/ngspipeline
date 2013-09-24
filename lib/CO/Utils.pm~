@@ -23,7 +23,6 @@ sub to_abs_path {
 
 sub dir_tree_as_hash {
 	my $dir = shift;
-	$dir =~s/\/$//;
 	$dir = to_abs_path($dir);
 	if(-f $dir) {
 		return {$dir => 1}

@@ -141,7 +141,7 @@ sub run {
 		}
 	
 		print SH "#!/bin/sh\n";
-		print SH "#PBS -N $self->{prefix}_$fn\n";
+		print SH "#PBS -N $fn\n";
 		foreach my $k (keys %qsub_settings) {
 			if(ref($qsub_settings{$k}) eq "HASH") {
 				foreach my $opt (keys %{$qsub_settings{$k}}) {

@@ -56,7 +56,7 @@ sub read_std_dir {
 		my $type_dir = [ sort keys %{$tree->{$pid_dir->[$i]}} ];
 		
 		for(my $j = 0; $j < len($type_dir); $j ++) {
-			my @lanes = sort keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}};
+			my @lanes = keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}};
 			
 			for(my $k = 0; $k < scalar(@lanes); $k ++) {
 				if($lanes[$k] =~/^run/) {
