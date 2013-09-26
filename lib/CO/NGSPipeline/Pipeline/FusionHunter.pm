@@ -55,19 +55,19 @@ sub run {
 	####################################################################
 	# trim
 	####################################################################
-	$pm->set_job_name("$sample_id"."_fusionhunter_trimmed");
-	$qid->{trim} = $pipeline->fusionhunter->trim(
-		fastq1  => $r1_fastq,
-		fastq2  => $r2_fastq,
-		output1 => "$prefix1.trimmed.fastq",
-		output2 => "$prefix2.trimmed.fastq",
-		polya   => 1,
-	);	
+	#$pm->set_job_name("$sample_id"."_fusionhunter_trimmed");
+	#$qid->{trim} = $pipeline->genefusion->trim(
+	#	fastq1  => $r1_fastq,
+	#	fastq2  => $r2_fastq,
+	#	output1 => "$prefix1.trimmed.fastq",
+	#	output2 => "$prefix2.trimmed.fastq",
+	#	polya   => 1,
+	#);	
 	
 	$pm->set_job_name("$sample_id"."_fusionhunter");
 	$qid = $pipeline->genefusion->fusionhunter(
-		fastq1 => "$prefix1.trimmed.fastq",
-		fastq2 => "$prefix2.trimmed.fastq",
+		fastq1 => "$r1_fastq",
+		fastq2 => "$r2_fastq",
 		delete_input => 1,
 	);
 }
