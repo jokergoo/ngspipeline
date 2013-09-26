@@ -22,6 +22,8 @@ use CO::NGSPipeline::Pipeline::methylCtools;
 my $opt = CO::NGSPipeline::Getopt->new;
 
 $opt->before("
+WGBS pipeline.
+
 USAGE:
 
   perl $0 --list file --dir dir --tool tool

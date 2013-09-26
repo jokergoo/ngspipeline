@@ -74,9 +74,11 @@ sub read_std_dir {
 
 sub help_msg {
 	print <<MSG;
+Generate sample list file from directory with standard structure
+	
 Usage:
   
-  perl $0 /your/standard/fastq/file/dir > list
+  perl $0 /path/to/view-by-pid > list
   
   The specified directory must end with 'view-by-pid'
   
@@ -84,6 +86,8 @@ Usage:
     
     view-by-pid/\$PID/\$type/paired/\$lane/sequence/\$r1_fastq
     view-by-pid/\$PID/\$type/paired/\$lane/sequence/\$r2_fastq
-	
+
+  The sample name would be \$PID_\$type
+  
 MSG
 }

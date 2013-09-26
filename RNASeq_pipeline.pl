@@ -21,6 +21,7 @@ use CO::NGSPipeline::Pipeline::TopHatFusion;
 my $opt = CO::NGSPipeline::Getopt->new;
 
 $opt->before("
+RNAseq pipeline.
 
 USAGE:
 

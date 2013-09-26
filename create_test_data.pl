@@ -12,16 +12,17 @@ BEGIN {
 
 if(! scalar(@ARGV)) {
 	print <<USAGE;
-Extract n sequences from the FASTQ file.
+Extract n sequences from FastQ file.
 
 Usage:
 
-  perl create_testdata.pl --input fastq --output output --start start --records n
+  perl create_testdata.pl -i fastq -o output -s start -k n
   
-  --input   FastQ file, gzipped or not.
-  --output  output FastQ file. gzipped or not (default: uncompressed FastQ to STDOUT)
-  --start   Which read to start (default: 1)
-  --records How many reads do you want (default: 10000)
+  --input, -i   FastQ file, gzipped or not.
+  --output, -o  output FastQ file. gzipped or not (default: uncompressed FastQ
+                to STDOUT)
+  --start, -s   Which read to start (default: 1)
+  --records, -k How many reads do you want (default: 10000)
   
 USAGE
 	
@@ -37,10 +38,10 @@ my $output;
 my $start = 1;
 my $n_records = 10000;
 
-GetOptions( "input=s" => \$fastq,
-            "output=s" => \$output,
-			"start=i" => \$start,
-			"records=i" => \$n_records) or die;
+GetOptions( "input|i=s" => \$fastq,
+            "output|o=s" => \$output,
+			"start|s=i" => \$start,
+			"records|k=i" => \$n_records) or die;
 			
 my $fastq = CO::FastQ->new(file => $fastq);
 

@@ -52,7 +52,7 @@ if($tool eq "bismark") {
 	
 	system("perl $dir/create_test_data.pl @ARGV");
 
-} elsif($tool eq "sampellist") {
+} elsif($tool eq "list") {
 
 	system("perl get_sample_list_from_std_dir.pl @ARGV");
 
