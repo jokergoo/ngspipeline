@@ -38,7 +38,7 @@ sub align {
 	my $pm = $self->get_pipeline_maker;
 	
 	if($strand) {
-		$pm->add_command("tophat2 -o $pm->{dir} -p 8 --library-type fr-firststrand -r 200 --mate-std-dev 50 --b2-sensitive -g 1 --no-coverage-search --GTF $GENCODE_GTF --transcriptome-index=$GENCODE_BOWTIE2_INDEX $BOWTIE2_INDEX $fastq1 $fastq2");
+		$pm->add_command("tophat2 -o $pm->{dir} -p 8 --library-type fr-unstrandedfirststrand -r 200 --mate-std-dev 50 --b2-sensitive -g 1 --no-coverage-search --GTF $GENCODE_GTF --transcriptome-index=$GENCODE_BOWTIE2_INDEX $BOWTIE2_INDEX $fastq1 $fastq2");
 	} else {
 		$pm->add_command("tophat2 -o $pm->{dir} -p 8 --library-type fr-unstranded -r 200 --mate-std-dev 50 --b2-sensitive -g 1 --no-coverage-search --GTF $GENCODE_GTF --transcriptome-index=$GENCODE_BOWTIE2_INDEX $BOWTIE2_INDEX $fastq1 $fastq2");
 	}

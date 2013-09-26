@@ -45,7 +45,7 @@ sub read_std_dir {
 	
 	my $tree = dir_tree_as_hash($dir);
 	
-	my $pid_dir = [ sort keys %{$tree} ];
+	my $pid_dir = [ sort grep {-d "$dir/$_"} keys %{$tree} ];
 	
 	my $r1 = [];
 	my $r2 = [];
@@ -53,15 +53,15 @@ sub read_std_dir {
 
 	for(my $i = 0; $i < len($pid_dir); $i ++) {
 		
-		my $type_dir = [ sort keys %{$tree->{$pid_dir->[$i]}} ];
+		my $type_dir = [ sort grep {-d "$dir/$pid_dir->[$i]/$_"} keys %{$tree->{$pid_dir->[$i]}} ];
 		
 		for(my $j = 0; $j < len($type_dir); $j ++) {
-			my @lanes = sort keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}};
+			my @lanes = sort grep {-d "$dir/$pid_dir->[$i]/$type_dir->[$j]/paired/$_"} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}};
 			
 			for(my $k = 0; $k < scalar(@lanes); $k ++) {
 				if($lanes[$k] =~/^run/) {
 					
-					my ($read1, $read2) =  sort keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}->{$lanes[$k]}->{sequence}};
+					my ($read1, $read2) =  sort grep {/\.gz$/} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}->{$lanes[$k]}->{sequence}};
 					push(@$pid, "$pid_dir->[$i]_$type_dir->[$j]");
 					push(@$r1, $read1);
 					push(@$r2, $read2);
