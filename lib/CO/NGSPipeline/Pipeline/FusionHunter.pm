@@ -68,7 +68,7 @@ sub run {
 	$qid = $pipeline->genefusion->fusionhunter(
 		fastq1 => "$r1_fastq",
 		fastq2 => "$r2_fastq",
-		delete_input => 1,
+		delete_input => 0,
 	);
 }
 1;

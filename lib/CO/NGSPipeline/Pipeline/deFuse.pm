@@ -69,7 +69,7 @@ sub run {
 	$qid = $pipeline->genefusion->defuse(
 		fastq1 => "$r1_fastq",
 		fastq2 => "$r2_fastq",
-		delete_input => 1,
+		delete_input => 0,
 	);
 }
 
