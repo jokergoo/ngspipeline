@@ -57,7 +57,7 @@ sub reset_opt {
 	$opt->add($ref5, "enforce", "enforce to re-run pipeline from the beginning no matter they were successfully finished or not.");
 	$opt->add($ref6, "filesize=i", "If size of some output files (e.g. bam files, methylation calling files) are smaller than this value, then step is terminated. Default is 1M (1024*1024). Set it to zero or non-number strings to shut down file size checking.");
 	$opt->add($ref7, "test", "testing mode");
-	$opt->add($ref8, "prefix", "prefix added to job names"
+	$opt->add($ref8, "prefix", "prefix added to job names");
 	
 	return $opt;
 }

@@ -13,14 +13,14 @@ it by `qsub`.
 
 Usage:
 
-  perl qsub_single_line.pl "-l walltime=10:00:00,mem=10G" "samtools view ..."
+  perl qsub_single_line.pl "-l walltime=10:00:00,mem=10G" COMMAND ...
 
-The script expects two arguments, one is setting for qsub and the other is
-the single line command. For the settings for qsub, you only need to set 
-"-l" and "-N" options. Default value for "-N" is a random string.
+The first option is settings for qsub and the following is single line 
+commands. For the settings for qsub, you only need to set "-l" and "-N" 
+options. Default value for "-N" is a random string.
 
-Before you run the script, you need to modify the email address and the path of
-your temporary directory. Just look into the source code, it is simple.
+Before you run the script, you need to modify the email address and the 
+path of your temporary directory. Just look into the source code, it is simple.
 
 USAGE
 	exit 0;

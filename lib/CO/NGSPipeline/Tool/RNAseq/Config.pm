@@ -42,9 +42,9 @@ our $GENOME_HG19 = $CO::NGSPipeline::Tool::Config::GENOME_HG19;
 our $GENOME_1KG = $CO::NGSPipeline::Tool::Config::GENOME_1KG;
 
 # gsnap using 1000genome as reference genome
-our $GSNAP_GENOME_DIR = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/GNSAP/genome/';
-our $GSNAP_GENOME = '1KGRef';
-our $GSNAP_IIT = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/gencode_v17_nochr.iit';
+our $GSNAP_GENOME_DIR = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/GNSAP_hg19/genome/';
+our $GSNAP_GENOME = 'hg19';
+our $GSNAP_IIT = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/gencode_v17.iit';
 
 ###################################################
 # gene fusion settings
