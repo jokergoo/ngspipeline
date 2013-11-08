@@ -99,9 +99,13 @@ foreach my $sample_id (sort keys %$sample) {
 	
 		$pipeline = CO::NGSPipeline::Pipeline::BSMAP->new();
 		
-	}  elsif($tool eq "methylctools") {
+	} elsif($tool eq "methylctools") {
 	
 		$pipeline = CO::NGSPipeline::Pipeline::methylCtools->new();
+		
+	} elsif($tool eq "bsseq") {
+	
+		$pipeline = CO::NGSPipeline::Pipeline::BSSEQ->new();
 		
 	} else {
 		die "--tool can only be set to one of 'bismark', 'bsmap' and 'methylctools'.\n";

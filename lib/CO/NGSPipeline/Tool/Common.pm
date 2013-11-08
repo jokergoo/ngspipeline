@@ -68,12 +68,12 @@ sub trim {
 	
 	my $delete_input = $param{delete_input};
 	
-	$pm->add_command("perl $TRIMPAIR_BIN_DIR/trim.pl --fastq1=$fastq1 --fastq2=$fastq2 --output1=$output1 --output2=$output2 --tmp=$pm->{tmp_dir}".($polya ? " --trim-polyA" : ""));
+	$pm->add_command("perl $TRIMPAIR_BIN_DIR/trim.pl --fastq1=$fastq1 --fastq2=$fastq2 --output1=$output1 --output2=$output2 --tmp=$pm->{tmp_dir}");
 	
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_trim",
 					          "-l" => { nodes => "1:ppn=3:lsdf",
 							            mem => "1GB",
-							            walltime => "20:00:00"},);
+							            walltime => "50:00:00"},);
 	return($qid);
 }
 

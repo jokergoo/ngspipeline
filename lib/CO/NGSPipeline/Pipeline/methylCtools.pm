@@ -253,10 +253,11 @@ sub run {
 		for my $chr (map {"chr$_"} (1..22, "X", "Y")) {
 			$pm->set_job_name("$sample_id"."_bsseq_RData_$chr");
 			$pm->set_job_dependency($qid->{methy_calling});
-			$qid->{RData} = $pipeline->methylctools->RData(
-				bedgraph   => "$prefix1.nodup.cpg.filtered.CG.bedgraph",
+			$qid->{RData} = $pipeline->bsmooth->RData(
+				input   => "$prefix1.nodup.cpg.filtered.CG.bedgraph",
 				sample_id  => $sample_id,
 				chr        => $chr,
+				output     => "$pm->{dir}/bsseq.$chr.RData",
 			);
 		}
 	}

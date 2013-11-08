@@ -189,25 +189,25 @@ L=$pm->{dir}/fastq1
 R=$pm->{dir}/fastq2
 
 # reference dir/name, reference should be in fasta format. Only 'major' chromosomes shall be included in reference genome. Undetermined scaffolds must be excluded since they might lead to spurious fusion outputs. 
-Reference =$GENOME_HG19
+Reference=/icgc/lsdf/mb/analysis/guz/gene_fusion/TopHatFusion/bowtie_index/hg19.fa
 
 # the directory containing Bowtie index/basename of Bowtie index, built from the Reference file you provided.
 # NO '/' in the end
 #
 
-BowtieIdx=$BOWTIE_INDEX
+BowtieIdx=/icgc/lsdf/mb/analysis/guz/gene_fusion/TopHatFusion/bowtie_index/hg19
 
 # the directory and name of gene annotation list, we suggest UCSC annotation, these AnnotationFiles are included in FusionHunter package. For non-human species, please download the annotation from UCSC table browser with first 10 columns# as the GenePred table format, and last column should be the gene name. This track is mandatory in FusionHunter.
-Gene_annotation = $FUSIONHUNTER_DIR/AnnotationFiles_hg19/hg19.ucscKnownGene
+Gene_annotation = /icgc/lsdf/mb/analysis/guz/gene_fusion/FusionHunter/AnnotationFiles_hg19/hg19.ucscKnownGene
 
 # directory and file name repeats region annotation, these AnnotationFiles are included in FusionHunter package for hg18/hg19. Optional for non-human species in FusionHunter, leave it blank if not available.
-Repeats = $FUSIONHUNTER_DIR/AnnotationFiles_hg19/hg19.repeats
+Repeats = /icgc/lsdf/mb/analysis/guz/gene_fusion/FusionHunter/AnnotationFiles_hg19/hg19.repeats
 
 # the directory and file name of self alignment regions, these AnnotationFiles are included in FusionHunter package for hg18/hg19. Optional for non-human species in FusionHunter, leave it blank if not available.
-SelfAlign = $FUSIONHUNTER_DIR/AnnotationFiles_hg19/hg19.chain.pairs
+SelfAlign = /icgc/lsdf/mb/analysis/guz/gene_fusion/FusionHunter/AnnotationFiles_hg19/hg19.chain.pairs
 
 # the directory and file name of human EST database, these AnnotationFiles are included in FusionHunter package for hg18/hg19. Optional for non-human species in FusionHunter, leave it blank if not available.
-EST = $FUSIONHUNTER_DIR/AnnotationFiles_hg19/hg19.SpliceEST
+EST = /icgc/lsdf/mb/analysis/guz/gene_fusion/FusionHunter/AnnotationFiles_hg19/hg19.SpliceEST
 
 # size of the segmented reads, we strongly suggest it should not be longer than half of full read length e.g. <=25 if your RNA-seq read is 50bp
 segment_size = 25
@@ -300,7 +300,7 @@ CONFIG
 	}
 	
 	$pm->add_command("cd $pm->{dir}/results", 0);
- 	$pm->add_command("perl $FUSIONHUNTER_BIN_DIR/FusionHunter.pl FusionHunter.cfg");
+ 	$pm->add_command("perl /icgc/lsdf/mb/analysis/guz/gene_fusion/FusionHunter/FusionHunter-v1.4/bin/FusionHunter.pl FusionHunter.cfg");
 	$pm->add_command("rm $pm->{dir}/fastq1", 0);
 	$pm->add_command("rm $pm->{dir}/fastq2", 0);
 	$pm->del_file($fastq1, $fastq2) if($delete_input);

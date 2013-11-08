@@ -55,20 +55,22 @@ sub run {
 	####################################################################
 	# trim
 	####################################################################
-	#$pm->set_job_name("$sample_id"."_fusionmap_trimmed");
-	#$qid->{trim} = $pipeline->genefusion->trim(
-	#	fastq1  => $r1_fastq,
-	#	fastq2  => $r2_fastq,
-	#	output1 => "$prefix1.trimmed.fastq",
-	#	output2 => "$prefix2.trimmed.fastq",
-	#	polya   => 1,
-	#);	
+	$pm->set_job_name("$sample_id"."_fusionmap_trimmed");
+	$qid->{trim} = $pipeline->genefusion->trim(
+		fastq1  => $r1_fastq,
+		fastq2  => $r2_fastq,
+		output1 => "$prefix1.trimmed.fastq",
+		output2 => "$prefix2.trimmed.fastq",
+		polya   => 1,
+	);	
 	
 	$pm->set_job_name("$sample_id"."_fusionmap");
+	$pm->set_job_dependency($qid->{trim});
 	$qid = $pipeline->genefusion->fusionmap(
-		fastq1 => $r1_fastq,
-		fastq2 => $r2_fastq,
-		sample_id => $sample_id
+		fastq1 => "$prefix1.trimmed.fastq",
+		fastq2 => "$prefix2.trimmed.fastq",
+		sample_id => $sample_id,
+		delete_input => 1,
 	);
 }
 

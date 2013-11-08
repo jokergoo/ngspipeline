@@ -46,6 +46,8 @@ sub new {
 	$d->{flag_dir} = to_abs_path($d->{flag_dir});
 	$d->{report_dir} = to_abs_path($d->{report_dir});
 	
+	$d->{prefix} = $d->{prefix} ? "$d->{prefix}_" : "";
+	
 	$d->{ngspipeline_log_file} = "$d->{report_dir}/ngspipeline_log_file_".time.".txt";
 
 	return bless $d, $class;
@@ -141,7 +143,7 @@ sub run {
 		}
 	
 		print SH "#!/bin/sh\n";
-		print SH "#PBS -N $self->{prefix}_$fn\n";
+		print SH "#PBS -N $self->{prefix}$fn\n";
 		foreach my $k (keys %qsub_settings) {
 			if(ref($qsub_settings{$k}) eq "HASH") {
 				foreach my $opt (keys %{$qsub_settings{$k}}) {

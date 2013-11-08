@@ -49,7 +49,8 @@ my $tt = Template->new({
 	                 "$script_dir/tt/lib"]
 	});
 
-my $tmp_dir = "$sample_dir/tmp";
+my $tmp_dir = "$sample_dir/ngs_tmp";
+-e $tmp_dir ? mkdir($tmp_dir) : 1;
 
 # find how many fastqc files
 my @fastqc_dir = grep { /\/fastqc_r\d+(_trimmed)?_\d+$/} glob("$sample_dir/*");

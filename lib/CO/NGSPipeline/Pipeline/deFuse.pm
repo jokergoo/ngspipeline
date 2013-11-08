@@ -56,20 +56,21 @@ sub run {
 	####################################################################
 	# trim
 	####################################################################
-	#$pm->set_job_name("$sample_id"."_defuse_trimmed");
-	#$qid->{trim} = $pipeline->genefusion->trim(
-	#	fastq1  => $r1_fastq,
-	#	fastq2  => $r2_fastq,
-	#	output1 => "$prefix1.trimmed.fastq.gz",
-	#	output2 => "$prefix2.trimmed.fastq.gz",
-	#	polya   => 1,
-	#);	
+	$pm->set_job_name("$sample_id"."_defuse_trimmed");
+	$qid->{trim} = $pipeline->genefusion->trim(
+		fastq1  => $r1_fastq,
+		fastq2  => $r2_fastq,
+		output1 => "$prefix1.trimmed.fastq.gz",
+		output2 => "$prefix2.trimmed.fastq.gz",
+		polya   => 1,
+	);	
 				
 	$pm->set_job_name("$sample_id"."_defuse");
+	$pm->set_job_dependency($qid->{trim});
 	$qid = $pipeline->genefusion->defuse(
-		fastq1 => "$r1_fastq",
-		fastq2 => "$r2_fastq",
-		delete_input => 0,
+		fastq1 => "$prefix1.trimmed.fastq.gz",
+		fastq2 => "$prefix2.trimmed.fastq.gz",
+		delete_input => 1,
 	);
 }
 

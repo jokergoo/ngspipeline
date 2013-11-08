@@ -52,8 +52,6 @@ sub run {
 	my $r1_fastq = $r1->[0];
 	my $r2_fastq = $r2->[0];
 
-	print $sample_id;
-
 	###################################################################
 	# fastqc
 	###################################################################
@@ -69,6 +67,7 @@ sub run {
 			output_dir => "$pm->{dir}/fastqc_r2"
 	);
 
+
 	####################################################################
 	# trim
 	####################################################################
@@ -78,7 +77,6 @@ sub run {
 		fastq2  => $r2_fastq,
 		output1 => "$prefix1.trimmed.fastq.gz",
 		output2 => "$prefix2.trimmed.fastq.gz",
-		polya   => 1,
 	);	
 				
 	###################################################################
@@ -121,7 +119,7 @@ sub run {
 	$pm->set_job_dependency($qid->{align});
 	$qid->{flagstat} = $pipeline->star->samtools_flagstat(
 		sam          => "$pm->{dir}/$sample_id.bam",
-		output       => "$pm->{dir}/sample_id.flagstat",
+		output       => "$pm->{dir}/$sample_id.flagstat",
 		delete_input => 0
 	);
 

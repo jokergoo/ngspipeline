@@ -21,10 +21,16 @@ unless( grep {~/^view-by-pid$/} split "\n", `ls $ARGV[0]` ){
 	die "'view-by-pid/' should be the first level child directory under $ARGV[0].\n";
 }
 
-my $list = read_std_dir($ARGV[0]);
+my $match = $ARGV[1] || '.*';
+$match = qr($match);
+
+my $list = read_std_dir($ARGV[0], $match);
+
 my $pid = $list->{pid};
 my $r1 = $list->{r1};
 my $r2 = $list->{r2};
+
+
 
 for(my $i = 0; $i < len($pid); $i ++) {
 	print "$pid->[$i]\t$r1->[$i]\t$r2->[$i]\n";
@@ -32,6 +38,7 @@ for(my $i = 0; $i < len($pid); $i ++) {
 
 sub read_std_dir {
 	my $dir = shift;
+	my $match = shift;
 	
 	$dir =~s/\/$//;
 	
@@ -60,8 +67,7 @@ sub read_std_dir {
 			
 			for(my $k = 0; $k < scalar(@lanes); $k ++) {
 				if($lanes[$k] =~/^run/) {
-					
-					my ($read1, $read2) =  sort grep {/\.gz$/} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}->{$lanes[$k]}->{sequence}};
+					my ($read1, $read2) =  sort grep {/$match/} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}->{$lanes[$k]}->{sequence}};
 					push(@$pid, "$pid_dir->[$i]_$type_dir->[$j]");
 					push(@$r1, $read1);
 					push(@$r2, $read2);
@@ -88,6 +94,18 @@ Usage:
     view-by-pid/\$PID/\$type/paired/\$lane/sequence/\$r2_fastq
 
   The sample name would be \$PID_\$type
+  
+  The second option can be regular expression to match the final
+FastQ files. By default we assume there are only two files under
+sequence/ folder. But if there is more files, you can specify
+this option to match file names.
+
+  E.g. if there are two files r1.fq.gz and r2.fq,gz, you can write
+the command as:
+
+  perl $0 /path/to/view-by-pid 'r[12]\\.fq\\.gz\$' > list
+  
+  DO NOT write slash around the regular expression.
   
 MSG
 }

@@ -1,4 +1,4 @@
-package CO::NGSPipeline::Tool::BSseq::RData;
+package CO::NGSPipeline::Tool::BSseq::Bsmooth;
 
 use strict;
 use CO::NGSPipeline::Tool::BSseq::Config;
@@ -25,18 +25,19 @@ sub RData {
 	
 	my %param = ( "input" => undef,
 		          "chr" => undef,
-	              "sampleName" => undef,
-				  "sampleClass" => undef,
+	              "sample_id" => undef,
 				  "output" => undef,
 				  "delete_input" => 0,
 				  @_);
 
 	my $input = $param{input};
-	my $sampleName = $param{sampleName};
-	my $sampleClass = $param{sampleClass};
+	my $sampleName = $param{sample_id};
 	my $delete_input = $param{delete_input};
 	my $chr = $param{chr};
 	my $output = to_abs_path($param{output});
+	
+	my $output2 = $output;
+	$output2 =~s/RData$/smoothed.RData/i;
 	
 	my $pm = $self->get_pipeline_maker;
 	
@@ -46,12 +47,10 @@ sub RData {
 	
 	my $file_str = "c(\"$input_chr\")";
 	my $sampleName_str = "c(\"$sampleName\")";
-	my $sampleClass_str = "c(\"$sampleClass\")";
 	
 	my $R = <<R;
 	
 library(bsseq)
-#bsseq_$chr = read.bismark(files = $file_str, sampleNames = $sampleName_str, rmZeroCov = TRUE, verbose=TRUE)
 d = read.table($file_str, sep = "\t", stringsAsFactors = FALSE)
 chr = d[[1]]
 M = cbind(round(d[[4]]/100*d[[5]]))
@@ -59,6 +58,10 @@ Cov = cbind(d[[5]])
 bsseq_$chr = BSseq(chr = chr, pos = d[[2]], M = M, Cov = Cov, sampleNames = $sampleName_str)
 
 save(bsseq_$chr, file = "$output")
+
+smooth_$chr = BSmooth(bsseq_$chr)
+
+save(smooth_$chr, file = "$output2")
 
 R
 

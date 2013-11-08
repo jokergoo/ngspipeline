@@ -104,8 +104,9 @@ sub counting {
 	my $pm = $self->get_pipeline_maker;
 	
 	$pm->add_command("JAVA_OPTIONS=-Xmx16G picard.sh SortSam INPUT=$bam OUTPUT=$bam.namesorted.bam SORT_ORDER=queryname TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT");
- 	$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t gene - $GENCODE_GTF > $bam_prefix.gene.count");
- 	$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon - $GENCODE_GTF > $bam_prefix.exon.count");
+ 	#$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t gene - $GENCODE_GTF > $bam_prefix.gene.count");
+ 	$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon -m intersection-nonempty - $GENCODE_GTF > $bam_prefix.exon.count");
+ 	#$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon -m intersection-nonempty - /icgc/lsdf/mb/analysis/guz/genome/gencode.v17.exon_union.gtf > $bam_prefix.exon_union.count");
 	$pm->del_file("$bam.namesorted.bam");
 
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_counting",

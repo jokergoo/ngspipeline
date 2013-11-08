@@ -52,6 +52,9 @@ sub align {
 	$pm->add_command("rm $pm->{dir}/fastq1", 0);
     $pm->add_command("rm $pm->{dir}/fastq2", 0);
 	$pm->add_command("mv $pm->{dir}/tmp_$sample_id.bam $output", 0);
+	$pm->add_command("samtools index $output");
+	
+	$pm->del_file($fastq1, $fastq2) if($delete_input);
 	
 	$pm->check_filesize("$output");
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_star_align",
