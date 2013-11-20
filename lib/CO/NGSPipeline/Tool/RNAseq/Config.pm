@@ -30,9 +30,9 @@ our @EXPORT = qw($BOWTIE_INDEX
 our $BOWTIE_INDEX = $CO::NGSPipeline::Tool::Config::BOWTIE_INDEX;
 our $BOWTIE2_INDEX = $CO::NGSPipeline::Tool::Config::BOWTIE2_INDEX;
 
-#our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR_refseq/genome/';
+our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR_Gencode_Broad/genome/';
 #our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR_SIMON/genome/';
-our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR/genome/';
+#our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR/genome/';
 #our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/RNA_seq/STAR_2/genome/';
 
 # gencode

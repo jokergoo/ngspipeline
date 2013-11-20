@@ -36,9 +36,9 @@ our $BOWTIE2_INDEX = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/indexes
 # gencode
 our $GENCODE_BOWTIE_INDEX = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/indexes/bowtie/bowtie1/gencode17/gencode.v17.annotation';
 our $GENCODE_BOWTIE2_INDEX = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/indexes/bowtie/bowtie2/gencode17/gencode.v17.annotation';
-our $GENCODE_GTF = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/databases/gencode/gencode17/gencode.v17.annotation.gtf';
+#our $GENCODE_GTF = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/databases/gencode/gencode17/gencode.v17.annotation.gtf';
 #our $GENCODE_GTF = '/ibios/raid6/users/herrmanc/Projects/LSC_Simon/output/merge_GTF/GENCODE_Broad.gtf';
-#our $GENCODE_GTF = '/ibios/co02/guz/project/hipo16/rna/Refseq_linc.gtf';
+our $GENCODE_GTF = '/ibios/co02/guz/project/hipo16/analysis/gencode/gencode_broad_merged.gtf';
 
 # genome
 our $GENOME_HG19 = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/sequence/hg19_chr/hg19_karyotypically_sorted.fa';

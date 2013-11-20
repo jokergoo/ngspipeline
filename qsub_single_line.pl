@@ -48,5 +48,9 @@ print $fh "$command\n";
 
 close $fh;
 
-print "qsub $qsub_settings $filename\n";
-`qsub $qsub_settings $filename`;
+my $res = `qsub $qsub_settings $filename`;
+my $qid;
+if($res =~/^(\d+)/) {
+	$qid = $1;
+}
+print "$qid\tqsub $qsub_settings $filename\n";

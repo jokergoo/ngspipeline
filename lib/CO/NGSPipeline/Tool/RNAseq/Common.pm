@@ -36,7 +36,7 @@ sub rnaseqqc {
 	$pm->add_command("picard.sh AddOrReplaceReadGroups INPUT=$bam OUTPUT=$bam_rg RGID=readGroup_name RGLB=readGroup_name RGPL=illumina RGPU=run RGSM=sample_name SORT_ORDER=coordinate CREATE_INDEX=true TMP_DIR=$pm->{tmp_dir}");
 	$pm->add_command("picard.sh ReorderSam INPUT=$bam_rg OUTPUT=$bam_reorder CREATE_INDEX=true R=$GENOME_HG19 TMP_DIR=$pm->{tmp_dir}");
 	$pm->del_file("$bam_rg", "$bam_base.RG.bai");
-	$pm->add_command("java -jar /home/guz/GenePatternServer/taskLib/RNASeQC.2.0/RNAseqMetrics.jar -s $pm->{dir}/sample_list -t $GENCODE_GTF -r $GENOME_HG19 -n 1000 -o $pm->{dir}/rnaseqqc");
+	$pm->add_command("java -jar /home/guz/GenePatternServer/taskLib/RNASeQC.2.0/RNAseqMetrics.jar -s $pm->{dir}/sample_list -t /icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/databases/gencode/gencode17/gencode.v17.annotation.gtf -r $GENOME_HG19 -n 1000 -o $pm->{dir}/rnaseqqc");
 	$pm->del_file("$bam_reorder", "$bam_base.reorder.bai");
 	
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_rnaseqqc",
@@ -105,8 +105,8 @@ sub counting {
 	
 	$pm->add_command("JAVA_OPTIONS=-Xmx16G picard.sh SortSam INPUT=$bam OUTPUT=$bam.namesorted.bam SORT_ORDER=queryname TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT");
  	#$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t gene - $GENCODE_GTF > $bam_prefix.gene.count");
- 	#$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon -m intersection-nonempty - $GENCODE_GTF > $bam_prefix.exon.count");
- 	$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon -m intersection-nonempty - /icgc/lsdf/mb/analysis/guz/genome/gencode.v17.exon_union.gtf > $bam_prefix.exon_union.count");
+ 	$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon -m intersection-nonempty - $GENCODE_GTF > $bam_prefix.exon.count");
+ 	#$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon -m intersection-nonempty - /icgc/lsdf/mb/analysis/guz/genome/gencode.v17.exon_union.gtf > $bam_prefix.exon_union.count");
 	$pm->del_file("$bam.namesorted.bam");
 
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_counting",

@@ -67,7 +67,7 @@ sub run {
 			output_dir => "$pm->{dir}/fastqc_r2"
 	);
 
-
+=pod
 	####################################################################
 	# trim
 	####################################################################
@@ -97,19 +97,19 @@ sub run {
 		output_dir   => "$pm->{dir}/fastqc_r2_trimmed",
 		delete_input => 0
 	);
-
+=cut
 	##################################################################
 	# alignment
 	##################################################################
 	$pm->set_job_name("$sample_id"."_star_align");
 	$pm->set_job_dependency($qid->{trim});
 	$qid->{align} = $pipeline->star->align(
-		fastq1       => "$prefix1.trimmed.fastq.gz",
-		fastq2       => "$prefix2.trimmed.fastq.gz",
+		fastq1       => "$r1_fastq",
+		fastq2       => "$r2_fastq",
 		output       => "$pm->{dir}/$sample_id.bam",
 		sample_id    => $sample_id,
 		strand       => $is_strand_specific,
-		delete_input => 1,
+		delete_input => 0,
 	);
 	
 	####################################################################
