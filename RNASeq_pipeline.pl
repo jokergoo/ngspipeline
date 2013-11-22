@@ -47,6 +47,7 @@ my $std_dir;
 my $enforce = 0;
 my $request_sampleid;
 my $is_strand_specific = 0;
+my $remove_duplicate = 0;
 my $do_test = 0;
 my $filesize = 1024*1024;
 my $prefix = "";
@@ -60,6 +61,7 @@ $opt->add(\$do_test, "test");
 $opt->add(\$filesize, "filesize=i");
 $opt->add(\$prefix, "prefix=s");
 $opt->add(\$is_strand_specific, "strand", "strand specific");
+$opt->add(\$remove_duplicate, "nodup", "remove duplicate. Currently there is no common agreement on whether it needs to remove duplicates or not.");
 
 $opt->getopt;
 
@@ -138,6 +140,7 @@ foreach my $sample_id (sort keys %$sample) {
 					   r2 => $r2,
 					   library => $library,
 					   is_strand_specific =>$is_strand_specific,
+					   remove_duplicate => $remove_duplicate,
 					   );
 					   
 }

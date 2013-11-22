@@ -13,7 +13,7 @@ it by `qsub`.
 
 Usage:
 
-  perl qsub_single_line.pl "-l walltime=10:00:00,mem=10G" COMMAND ...
+  perl qsub_single_line.pl "-l walltime=10:00:00,mem=10G" "COMMAND"
 
 The first option is settings for qsub and the following is single line 
 commands. For the settings for qsub, you only need to set "-l" and "-N" 

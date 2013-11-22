@@ -103,7 +103,7 @@ sub call_methylation {
 	$pm->set_job_name($common_name."_BisulfiteVCFsort");
 	$pm->set_job_dependency($qid);
 	$pm->add_command("perl $BISSNP_BIN_DIR/sortByRefAndCor.pl --k 1 --c 2 --tmp $pm->{tmp_dir} $prefix.cpg.raw.vcf $genome.fai | grep 'lambda' -v > $prefix.cpg.sorted.vcf");
-	#$pm->add_command("perl $BISSNP_BIN_DIR/sortByRefAndCor.pl --k 1 --c 2 --tmp $pm->{tmp_dir} $prefix.snp.raw.vcf $genome.fai | grep 'lambda' -v > $prefix.snp.sorted.vcf");
+	$pm->add_command("perl $BISSNP_BIN_DIR/sortByRefAndCor.pl --k 1 --c 2 --tmp $pm->{tmp_dir} $prefix.snp.raw.vcf $genome.fai | grep 'lambda' -v > $prefix.snp.sorted.vcf");
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_BisulfiteVCFsort",
 							 "-l" => { nodes => "1:ppn=3:lsdf", 
 									    mem => "15GB",
@@ -112,7 +112,7 @@ sub call_methylation {
 	# post process
 	$pm->set_job_name($common_name."_VCFpostprocess");
 	$pm->set_job_dependency($qid);
-	#$pm->add_command("java -Xmx10g -jar $BISSNP_BIN_DIR/BisSNP.jar -R $genome -T VCFpostprocess -oldVcf $prefix.snp.sorted.vcf -newVcf $prefix.snp.filtered.vcf -snpVcf $prefix.snp.sorted.vcf -o $prefix.snp.sorted.filter.summary.txt");
+	$pm->add_command("java -Xmx10g -jar $BISSNP_BIN_DIR/BisSNP.jar -R $genome -T VCFpostprocess -oldVcf $prefix.snp.sorted.vcf -newVcf $prefix.snp.filtered.vcf -snpVcf $prefix.snp.sorted.vcf -o $prefix.snp.sorted.filter.summary.txt");
 	
 	$pm->add_command("java -Xmx10g -jar $BISSNP_BIN_DIR/BisSNP.jar -R $genome -T VCFpostprocess -oldVcf $prefix.cpg.sorted.vcf -newVcf $prefix.cpg.filtered.vcf -snpVcf $prefix.cpg.sorted.vcf -o $prefix.cpg.sorted.filter.summary.txt");
 	
