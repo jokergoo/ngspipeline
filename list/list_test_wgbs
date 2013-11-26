@@ -1,0 +1,4 @@
+test_11P	/icgc/lsdf/mb/analysis/guz/pipeline_test/whole_genome_bisulfite_sequencing/11P_test.lane1.R1.fastq.gz	/icgc/lsdf/mb/analysis/guz/pipeline_test/whole_genome_bisulfite_sequencing/11P_test.lane1.R2.fastq.gz
+test_11P	/icgc/lsdf/mb/analysis/guz/pipeline_test/whole_genome_bisulfite_sequencing/11P_test.lane2.R1.fastq.gz	/icgc/lsdf/mb/analysis/guz/pipeline_test/whole_genome_bisulfite_sequencing/11P_test.lane2.R2.fastq.gz
+test_AK115	/icgc/lsdf/mb/analysis/guz/pipeline_test/whole_genome_bisulfite_sequencing/AK115_test.R1.fastq.gz	/icgc/lsdf/mb/analysis/guz/pipeline_test/whole_genome_bisulfite_sequencing/AK115_test.R2.fastq.gz
+

@@ -128,7 +128,7 @@ sub run {
 			delete_input => 0
 		);
 		
-		$sam_sort_list->[$i] = "$prefix1.$i.sorted.bam";
+		$sam_sort_list->[$i] = "$pm->{dir}/$sample_id.$i.bam";
 	}
 	
 	if($remove_duplicate) {
@@ -136,7 +136,7 @@ sub run {
 		$pm->set_job_dependency(@{$qid->{alignment}});
 		$qid->{remove_duplicate} = $pipeline->star->merge_nodup(
 			sam_list     => $sam_sort_list,
-			output       => "$pm->{dir}/$sample_id.bam",
+			output       => "$pm->{dir}/$sample_id.merged.bam",
 			delete_input => 1
 		);
 	} else {
@@ -144,7 +144,7 @@ sub run {
 		$pm->set_job_dependency(@{$qid->{alignment}});
 		$qid->{remove_duplicate} = $pipeline->star->merge_sam(
 			sam_list     => $sam_sort_list,
-			output       => "$pm->{dir}/$sample_id.bam",
+			output       => "$pm->{dir}/$sample_id.merged.bam",
 			delete_input => 1
 		);
 	}
@@ -155,7 +155,7 @@ sub run {
 	$pm->set_job_name("$sample_id"."_rnaseq_qc");
 	$pm->set_job_dependency($qid->{remove_duplicate});
 	$qid->{qc} = $pipeline->star->rnaseqqc(
-		bam       => "$pm->{dir}/$sample_id.bam",
+		bam       => "$pm->{dir}/$sample_id.merged.bam",
 		sample_id => $sample_id
 	);
 
@@ -163,9 +163,9 @@ sub run {
 	# counting and RPKM
 	####################################################################
 	$pm->set_job_name("$sample_id"."_counting");
-	$pm->set_job_dependency($qid->{align});
+	$pm->set_job_dependency($qid->{remove_duplicate});
 	$qid->{counting} = $pipeline->star->counting(
-		bam => "$pm->{dir}/$sample_id.bam",
+		bam => "$pm->{dir}/$sample_id.merged.bam",
 		strand => $is_strand_specific
 	);
 }

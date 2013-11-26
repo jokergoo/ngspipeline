@@ -72,8 +72,8 @@ foreach my $sample_id (sort keys %$sample) {
 	my $r1 = $sample->{$sample_id}->{r1};
 	my $r2 = $sample->{$sample_id}->{r2};
 	
-	if(scalar(@$r1) > 1) {
-		die "Currently only support RNA seq data one lane per sample. $sample_id has multiple lanes.\n";
+	if(($tool eq "defuse" or $tool eq "fusionmap" or $tool eq "fusionhunter") and scalar(@$r1) > 1) {
+		die "Currently only support one lane per sample for gene fusion. $sample_id has multiple lanes.\n";
 	}
 }
 

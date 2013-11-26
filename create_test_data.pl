@@ -68,6 +68,8 @@ while(my $read = $fastq->next) {
 	if($i_processed >= $n_records) {
 		last;
 	}
+	
+	$i_processed ++;
 }
 close $fh;
 

@@ -219,7 +219,7 @@ sub merge_nodup {
 			if(scalar(@index) == 1) {
 				$sam_file = $sam_list->[ $index[0] ];
 				$sam_nodup_file = "$output";
-				$sam_nodup_file =~s/\.(sam|bam)$/.$library_subset_name.$1/;
+				$sam_nodup_file =~s/\.(sam|bam)$/.library_$library_subset_name.$1/;
 				$sam_nodup_metric_file = $sam_nodup_file; $sam_nodup_metric_file =~s/\.(sam|bam)$/.mkdup.metrics/;
 				$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh MarkDuplicates INPUT=$sam_file OUTPUT=$sam_nodup_file METRICS_FILE=$sam_nodup_metric_file TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT REMOVE_DUPLICATES=TRUE ASSUME_SORTED=TRUE CREATE_INDEX=TRUE MAX_RECORDS_IN_RAM=50000000");
 				$pm->del_file($sam_file) if($delete_input);
@@ -233,7 +233,7 @@ sub merge_nodup {
 				$sam_sort_file = dirname($sam_list->[0])."/_tmp_$library_subset_name.".int(rand(999999)).".$suffix";
 				$pm->add_command("JAVA_OPTIONS=-Xmx16G picard.sh MergeSamFiles $input_str OUTPUT=$sam_sort_file SORT_ORDER=$sort_by TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT");
 				$sam_nodup_file = "$output";
-				$sam_nodup_file =~s/\.(sam|bam)$/.$library_subset_name.$1/;
+				$sam_nodup_file =~s/\.(sam|bam)$/.library_$library_subset_name.$1/;
 				$sam_nodup_metric_file = $sam_nodup_file; $sam_nodup_metric_file =~s/\.(sam|bam)$/.mkdup.metrics/;
 				$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh MarkDuplicates INPUT=$sam_sort_file OUTPUT=$sam_nodup_file METRICS_FILE=$sam_nodup_metric_file TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT REMOVE_DUPLICATES=TRUE ASSUME_SORTED=TRUE CREATE_INDEX=TRUE MAX_RECORDS_IN_RAM=50000000");
 				for(my $i = 0; $i < scalar(@$sam_list); $i ++) {
@@ -395,14 +395,18 @@ sub merge_sam {
 	
 	my $pm = $self->get_pipeline_maker;
 	
-	my $input_str;
-	for(my $i = 0; $i < scalar(@$sam_list); $i ++) {
-		$input_str .= "INPUT=$sam_list->[$i] ";
-	}
+	if(len($sam_list) == 1) {
+		$pm->add_command("mv $sam_list->[0] $output", 0);
+	} else {
+		my $input_str;
+		for(my $i = 0; $i < scalar(@$sam_list); $i ++) {
+			$input_str .= "INPUT=$sam_list->[$i] ";
+		}
 
-	$pm->add_command("JAVA_OPTIONS=-Xmx16G picard.sh MergeSamFiles $input_str OUTPUT=$output SORT_ORDER=coordinate TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT");
-	for(my $i = 0; $i < scalar(@$sam_list); $i ++) {
-		$pm->del_file($sam_list->[$i]) if($delete_input);
+		$pm->add_command("JAVA_OPTIONS=-Xmx16G picard.sh MergeSamFiles $input_str OUTPUT=$output SORT_ORDER=coordinate TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT");
+		for(my $i = 0; $i < scalar(@$sam_list); $i ++) {
+			$pm->del_file($sam_list->[$i]) if($delete_input);
+		}
 	}
 	
 	$pm->check_filesize($output); # 1M
