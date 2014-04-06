@@ -89,30 +89,43 @@ CONFIG
 sub defuse {
 	my $self = shift;
 	
-	my %param = ( "fastq1" => undef,
-	              "fastq2" => undef,
+	my %param = ( "fastq1_arrayref" => undef,
+	              "fastq2_arrayref" => undef,
 				  "delete_input" => 0,
 				  @_);
 	
-	my $fastq1 = to_abs_path($param{fastq1});
-	my $fastq2 = to_abs_path($param{fastq2});
+	my $fastq1_arrayref = $param{fastq1_arrayref};
+	my $fastq2_arrayref = $param{fastq2_arrayref};
 	my $delete_input = $param{delete_input};
 	
 	my $pm = $self->get_pipeline_maker;
 	
+	$pm->del_file("$pm->{dir}/fastq1", "$pm->{dir}/fastq2");
 	$pm->add_command("mkfifo $pm->{dir}/fastq1 $pm->{dir}/fastq2", 0);
-	$pm->add_command("zcat -c $fastq1 > $pm->{dir}/fastq1 &", 0);
-	$pm->add_command("zcat -c $fastq2 > $pm->{dir}/fastq2 &", 0);
+	
+	my $cmd1 = "perl /home/guz/perllib/zcat.pl ";
+	my $cmd2 = "perl /home/guz/perllib/zcat.pl ";
+	for(my $i = 0; $i < scalar(@$fastq1_arrayref); $i ++) {
+		$cmd1 .= " ".to_abs_path($fastq1_arrayref->[$i]);
+		$cmd2 .= " ".to_abs_path($fastq2_arrayref->[$i]);
+	}
+	$cmd1 .= " > $pm->{dir}/fastq1 &";
+	$cmd2 .= " > $pm->{dir}/fastq2 &";
+	$pm->add_command($cmd1, 0);
+	$pm->add_command($cmd2, 0);
 		
-	$pm->add_command("perl $DEFUSE_DIR/scripts/defuse.pl -c $DEFUSE_CONFIG_FILE -1 $pm->{dir}/fastq1 -2 $pm->{dir}/fastq2 -o $pm->{dir}/results -p 8");
+	$pm->add_command("perl $DEFUSE_DIR/scripts/defuse.pl -c $DEFUSE_CONFIG_FILE -1 $pm->{dir}/fastq1 -2 $pm->{dir}/fastq2 -o $pm->{dir}/results -p 16");
 	$pm->add_command("rm $pm->{dir}/fastq1", 0);
 	$pm->add_command("rm $pm->{dir}/fastq2", 0);
 	
-	$pm->del_file($fastq1, $fastq2) if($delete_input);
+	#if($delete_input) {
+	#	$pm->del_file(@$fastq1_arrayref);
+	#	$pm->del_file(@$fastq2_arrayref);
+	#}
 	
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_defuse",
-							 "-l" => { nodes => "1:ppn=8:lsdf", 
-									    mem => "30GB",
+							 "-l" => { nodes => "1:ppn=16:lsdf", 
+									    mem => "50GB",
 										walltime => "150:00:00"});
 
 	return($qid);
@@ -133,7 +146,7 @@ sub tophatfusion {
 	
 	my $pm = $self->get_pipeline_maker;
 		
-	$pm->add_command("tophat2 -o $pm->{dir} -p 8 --fusion-search --keep-fasta-order --bowtie1 --no-coverage-search -r 0 --mate-std-dev 80 --max-intron-length 100000 --fusion-min-dist 100000 --fusion-anchor-length 13 --fusion-ignore-chromosomes chrM $BOWTIE_INDEX $fastq1 $fastq2");
+	$pm->add_command("$TOPHAT2 -o $pm->{dir} -p 8 --fusion-search --keep-fasta-order --bowtie1 --no-coverage-search -r 0 --mate-std-dev 80 --max-intron-length 100000 --fusion-min-dist 100000 --fusion-anchor-length 13 --fusion-ignore-chromosomes chrM $BOWTIE_INDEX $fastq1 $fastq2");
 	$pm->del_file($fastq1, $fastq2) if($delete_input);
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_tophatfusion",
 							 "-l" => { nodes => "1:ppn=8:lsdf", 

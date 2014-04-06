@@ -21,14 +21,27 @@ sub call_methylation {
 	my $self = shift;
 	
 	my %param = ( "bam" => undef,
-	              "genome" => "$GENOME_DIR/$REF_GENOME",
+	              "genome" => "$GENOME_DIR/$REF_GENOME",  # $REF_GENOME is in fact $BSMAP_REF_GENOME
 				  "delete_input" => 0,
+				  "species" => 'human',
 				  @_);
 	
 	my $bam = to_abs_path($param{bam});
 	my $genome = to_abs_path($param{genome});
 	my $delete_input = $param{delete_input};
-	
+	my $species = $param{species};
+
+	if(lc($species) eq "mouse") {
+		$BSMAP_REF_GENOME = $BSMAP_REF_GENOME_MM;
+		$genome = "$GENOME_DIR/$REF_GENOME_MM";
+		$BISSNP_INTERVAL_FILE = $BISSNP_INTERVAL_FILE_MM;
+		$BISSNP_INDEL_1_FILE  = $BISSNP_INDEL_1_FILE_MM;
+		$BISSNP_INDEL_2_FILE  = $BISSNP_INDEL_2_FILE_MM;
+		$BISSNP_DBSNP_FILE    = $BISSNP_DBSNP_FILE_MM;
+
+	}
+
+
 	my $prefix = $bam;
 	$prefix =~s/\.bam$//;
 	
@@ -42,7 +55,7 @@ sub call_methylation {
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_add_RG",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "15GB",
-										walltime => "10:00:00"});
+										walltime => "50:00:00"});
 
 	
 	# it only use ~3.5 cores
@@ -52,7 +65,7 @@ sub call_methylation {
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_BisulfiteRealignerTargetCreator",
 							 "-l" => { nodes => "1:ppn=4:lsdf", 
 									    mem => "15GB",
-										walltime => "40:00:00"});
+										walltime => "60:00:00"});
 	
 	$pm->set_job_name($common_name."_BisulfiteIndelRealigner");
 	$pm->set_job_dependency($qid);	
@@ -60,7 +73,7 @@ sub call_methylation {
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_BisulfiteIndelRealigner",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "15GB",
-										walltime => "6:00:00"});
+										walltime => "50:00:00"});
 	# it only use ~6 cores
 	$pm->set_job_name($common_name."_BisulfiteCountCovariates");
 	$pm->set_job_dependency($qid);
@@ -68,7 +81,7 @@ sub call_methylation {
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_BisulfiteCountCovariates",
 							 "-l" => { nodes => "1:ppn=6:lsdf", 
 									    mem => "15GB",
-										walltime => "20:00:00"});
+										walltime => "50:00:00"});
 										
 	$pm->set_job_name($common_name."_BisulfiteTableRecalibration");
 	$pm->set_job_dependency($qid);
@@ -76,7 +89,7 @@ sub call_methylation {
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_BisulfiteTableRecalibration",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "15GB",
-										walltime => "15:00:00"});
+										walltime => "60:00:00"});
 	
 	$pm->set_job_name($common_name."_BisulfiteCountCovariates_after");
 	$pm->set_job_dependency($qid);	
@@ -88,7 +101,7 @@ sub call_methylation {
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_BisulfiteCountCovariates_after",
 							 "-l" => { nodes => "1:ppn=6:lsdf", 
 									    mem => "15GB",
-										walltime => "24:00:00"});
+										walltime => "60:00:00"});
 	
 	# genotyping
 	# note the -stand_call_conf option
@@ -98,7 +111,7 @@ sub call_methylation {
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_BisulfiteGenotyper",
 							 "-l" => { nodes => "1:ppn=12:lsdf", 
 									    mem => "15GB",
-										walltime => "200:00:00"});
+										walltime => "300:00:00"});
 										
 	$pm->set_job_name($common_name."_BisulfiteVCFsort");
 	$pm->set_job_dependency($qid);
@@ -136,7 +149,7 @@ sub call_methylation {
 	$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bissnp_VCFpostprocess",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "15GB",
-										walltime => "10:00:00"});
+										walltime => "20:00:00"});
 
 	return($qid);
 

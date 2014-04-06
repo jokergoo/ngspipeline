@@ -64,13 +64,28 @@ sub read_std_dir {
 		
 		for(my $j = 0; $j < len($type_dir); $j ++) {
 			my @lanes = sort grep {-d "$dir/$pid_dir->[$i]/$type_dir->[$j]/paired/$_"} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}};
+			my @lanes2 = sort grep {-d "$dir/$pid_dir->[$i]/$type_dir->[$j]/single/$_"} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{single}};
+			push(@lanes, @lanes2);
 			
 			for(my $k = 0; $k < scalar(@lanes); $k ++) {
 				if($lanes[$k] =~/^run/) {
-					my ($read1, $read2) =  sort grep {/$match/} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}->{$lanes[$k]}->{sequence}};
-					push(@$pid, "$pid_dir->[$i]_$type_dir->[$j]");
-					push(@$r1, $read1);
-					push(@$r2, $read2);
+					my @reads =  sort grep {/$match/} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{paired}->{$lanes[$k]}->{sequence}};
+					if(scalar(@reads)) {
+						for(my $x = 0; $x < scalar(@reads); $x +=2) {
+							push(@$pid, "$pid_dir->[$i]_$type_dir->[$j]");
+							push(@$r1, $reads[$x]);
+							push(@$r2, $reads[$x+1]);
+						}
+					}
+					
+					my @reads =  sort grep {/$match/} keys %{$tree->{$pid_dir->[$i]}->{$type_dir->[$j]}->{single}->{$lanes[$k]}->{sequence}};
+					if(scalar(@reads)) {
+						for(my $x = 0; $x < scalar(@reads); $x ++) {
+							push(@$pid, "$pid_dir->[$i]_$type_dir->[$j]");
+							push(@$r1, $reads[$x]);
+							push(@$r2, "");
+						}
+					}
 				}
 			}
 		}
@@ -90,8 +105,8 @@ Usage:
   
   The script assumes your directory structure as:
     
-    view-by-pid/\$PID/\$type/paired/\$lane/sequence/\$r1_fastq
-    view-by-pid/\$PID/\$type/paired/\$lane/sequence/\$r2_fastq
+    view-by-pid/\$PID/\$type/paired|single/\$lane/sequence/\$r1_fastq
+    view-by-pid/\$PID/\$type/paired|single/\$lane/sequence/\$r2_fastq
 
   The sample name would be \$PID_\$type
   

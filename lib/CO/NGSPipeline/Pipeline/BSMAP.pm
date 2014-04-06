@@ -23,30 +23,26 @@ sub run {
 	}
 	
 	my %param = (sample_id => undef,
-	             r1 => undef,
-				 r2 => undef,
-				 library => undef,
-				 dir => undef,
+	             r1        => undef,
+				 r2        => undef,
+				 library   => undef,
+				 dir       => undef,
 				 no_bissnp => 0,
+				 species   => 'human',
 				 @_);
 				 
 	my $sample_id = $param{sample_id};
-	my $r1 = $param{r1};
-	my $r2 = $param{r2};
-	my $library = $param{library};
-	my $dir = $param{dir};
+	my $r1        = $param{r1};
+	my $r2        = $param{r2};
+	my $library   = $param{library};
+	my $dir       = $param{dir};
 	my $no_bissnp = $param{no_bissnp};
-	
-	# prefix means absolute path without fast/fq or fast.gz/fq.gz
-	my $prefix1 = basename($r1->[0]);
-	$prefix1 =~s/\.(fq|fastq)(\.gz)?$//;
-	$prefix1 = "$pm->{dir}/$prefix1";
-	my $prefix2 = basename($r2->[0]);
-	$prefix2 =~s/\.(fq|fastq)(\.gz)?$//;
-	$prefix2 = "$pm->{dir}/$prefix2";
+	my $species   = $param{species};
 
 	my $qid = {};
-	$qid->{alignment} = [];
+	$qid->{flagstat} = [];
+	$qid->{fastqc_r1} = [];
+	$qid->{fastqc_r2} = [];
 	my $sam_sort_list = [];
 	for(my $i = 0; $i < scalar(@$r1); $i ++) {
 		my $r1_fastq = $r1->[$i];
@@ -57,13 +53,13 @@ sub run {
 		# fastqc
 		###################################################################
 		$pm->set_job_name("$sample_id"."_bsmap_fastqc_r1_$i");
-		$qid->{fastqc_r1} = $pipeline->bsmap->fastqc(
+		$qid->{fastqc_r1}->[$i] = $pipeline->bsmap->fastqc(
 			fastq      => $r1_fastq,
 			output_dir => "$pm->{dir}/fastqc_r1_$i"
 		);
 
 		$pm->set_job_name("$sample_id"."_bsmap_fastqc_r2_$i");
-		$qid->{fastqc_r2} = $pipeline->bsmap->fastqc(
+		$qid->{fastqc_r2}->[$i] = $pipeline->bsmap->fastqc(
 			fastq      => $r2_fastq,
 			output_dir => "$pm->{dir}/fastqc_r2_$i"
 		);
@@ -75,8 +71,8 @@ sub run {
 		$qid->{trim} = $pipeline->bsmap->trim(
 			fastq1  => $r1_fastq,
 			fastq2  => $r2_fastq,
-			output1 => "$prefix1.trimmed.$i.fastq.gz",
-			output2 => "$prefix2.trimmed.$i.fastq.gz",
+			output1 => "$pm->{dir}/$sample_id.r1.trimmed.$i.fastq.gz",
+			output2 => "$pm->{dir}/$sample_id.r2.trimmed.$i.fastq.gz",
 		);
 				
 		###################################################################
@@ -85,14 +81,14 @@ sub run {
 		$pm->set_job_name("$sample_id"."_bsmap_fastqc_r1_trimmed_$i");
 		$pm->set_job_dependency($qid->{trim});
 		$qid->{fastqc_r1_trimmed} = $pipeline->bsmap->fastqc(
-			fastq      => "$prefix1.trimmed.$i.fastq.gz",
+			fastq      => "$pm->{dir}/$sample_id.r1.trimmed.$i.fastq.gz",
 			output_dir => "$pm->{dir}/fastqc_r1_trimmed_$i"
 		);
 
 		$pm->set_job_name("$sample_id"."_bsmap_fastqc_r2_trimmed_$i");
 		$pm->set_job_dependency($qid->{trim});
 		$qid->{fastqc_r2_trimmed} = $pipeline->bsmap->fastqc(
-			fastq      => "$prefix2.trimmed.$i.fastq.gz",
+			fastq      => "$pm->{dir}/$sample_id.r2.trimmed.$i.fastq.gz",
 			output_dir => "$pm->{dir}/fastqc_r2_trimmed_$i"
 		);
 												 
@@ -100,38 +96,39 @@ sub run {
 		# alignment
 		###################################################################
 		$pm->set_job_name("$sample_id"."_bsmap_alignment_$i");
-		$pm->set_job_dependency($qid->{trim});
-		$qid->{alignment}->[$i] = $pipeline->bsmap->align(
-			fastq1       => "$prefix1.trimmed.$i.fastq.gz",
-			fastq2       => "$prefix2.trimmed.$i.fastq.gz",
-			output       => "$prefix1.$i.sorted.bam",
+		$pm->set_job_dependency($qid->{fastqc_r1_trimmed}, $qid->{fastqc_r2_trimmed});
+		$qid->{alignment} = $pipeline->bsmap->align(
+			fastq1       => "$pm->{dir}/$sample_id.r1.trimmed.$i.fastq.gz",
+			fastq2       => "$pm->{dir}/$sample_id.r2.trimmed.$i.fastq.gz",
+			output       => "$pm->{dir}/$sample_id.$i.sorted.bam",
 			delete_input => 1,
+			species      => $species,
 		);
 				
 		####################################################################
 		# flagstat
 		####################################################################
 		$pm->set_job_name("$sample_id"."_bsmap_flagstat_$i");
-		$pm->set_job_dependency($qid->{alignment}->[$i]);
-		$qid->{flagstat} = $pipeline->bsmap->samtools_flagstat(
-			sam          => "$prefix1.$i.sorted.bam",
-			output       => "$prefix1.$i.flagstat",
-			delete_input => 0
+		$pm->set_job_dependency($qid->{alignment});
+		$qid->{flagstat}->[$i] = $pipeline->bsmap->samtools_flagstat(
+			sam          => "$pm->{dir}/$sample_id.$i.sorted.bam",
+			output       => "$pm->{dir}/$sample_id.$i.flagstat",
+			delete_input => 0,
 		);
 
-		$sam_sort_list->[$i] = "$prefix1.$i.sorted.bam";
+		$sam_sort_list->[$i] = "$pm->{dir}/$sample_id.$i.sorted.bam";
 	}
 
 	########################################################################
 	# merge, nodup
 	########################################################################
 	$pm->set_job_name("$sample_id"."_bsmap_merge_and_nodup");
-	$pm->set_job_dependency(@{$qid->{alignment}});
+	$pm->set_job_dependency(@{$qid->{flagstat}});
 	$qid->{remove_duplicate} = $pipeline->bsmap->merge_nodup(
 		sam_list     => $sam_sort_list,
-		output       => "$prefix1.nodup.bam",
+		output       => "$pm->{dir}/$sample_id.nodup.bam",
 		library      => $library,
-		delete_input => 1
+		delete_input => 1,
 	);
 									   
 	########################################################################
@@ -140,7 +137,7 @@ sub run {
 	$pm->set_job_name("$sample_id"."_bsmap_insertsize");
 	$pm->set_job_dependency($qid->{remove_duplicate});
 	$qid->{insertsize} = $pipeline->bsmap->picard_insertsize(
-		sam => "$prefix1.nodup.bam"
+		sam => "$pm->{dir}/$sample_id.nodup.bam",
 	);
 
 	########################################################################
@@ -149,8 +146,9 @@ sub run {
 	$pm->set_job_name("$sample_id"."_bsmap_lambda_conversion");
 	$pm->set_job_dependency($qid->{remove_duplicate});
 	$qid->{lambda_conversion} = $pipeline->bsmap->lambda_conversion(
-		bam    => "$prefix1.nodup.bam",
-		output => "$prefix1.lambda.conversion.txt"
+		bam    => "$pm->{dir}/$sample_id.nodup.bam",
+		output => "$pm->{dir}/$sample_id.lambda.conversion.txt",
+		species => $species,
 	);
 				
 	########################################################################
@@ -158,23 +156,25 @@ sub run {
 	########################################################################
 	if($no_bissnp) {
 		$pm->set_job_name("$sample_id"."_bsmap_methylation_calling");
-		$pm->set_job_dependency($qid->{remove_duplicate});
+		$pm->set_job_dependency($qid->{insertsize}, $qid->{lambda_conversion});
 		$qid->{methy_calling} = $pipeline->bsmap->call_methylation(
-			sam    => "$prefix1.nodup.bam",
-			output => "$prefix1.methylcall.txt"
+			sam    => "$pm->{dir}/$sample_id.nodup.bam",
+			output => "$pm->{dir}/$sample_id.methylcall.txt",
+			species => $species,
 		);
 	} else {
 	########################################################################
 	# bissnp methylation calling
 	########################################################################
 		$pm->set_job_name("$sample_id"."_bissnp_methylation_calling");
-		$pm->set_job_dependency($qid->{remove_duplicate});
+		$pm->set_job_dependency($qid->{insertsize}, $qid->{lambda_conversion});
 		$qid->{methy_calling} = $pipeline->bissnp->call_methylation(
-			bam => "$prefix1.nodup.bam",
+			bam => "$pm->{dir}/$sample_id.nodup.bam",
+			species => $species,
 		);
 												
 		$pm->set_job_name("$sample_id"."_bsmap_QC");
-		$pm->set_job_dependency($qid->{methy_calling});
+		$pm->set_job_dependency(@{$qid->{fastqc_r1}}, @{$qid->{fastqc_r2}}, $qid->{methy_calling});
 		$qid->{qc} = $pipeline->bsmap->bsqc(
 			dir    => $pm->{dir},
 			tool   => "bsmap",
@@ -185,7 +185,7 @@ sub run {
 			$pm->set_job_name("$sample_id"."_bsseq_RData_$chr");
 			$pm->set_job_dependency($qid->{methy_calling});
 			$qid->{RData} = $pipeline->bsmooth->RData(
-				input   => "$prefix1.nodup.cpg.filtered.CG.bedgraph",
+				input   => "$pm->{dir}/$sample_id.nodup.cpg.filtered.CG.bedgraph",
 				sample_id  => $sample_id,
 				chr        => $chr,
 				output     => "$pm->{dir}/bsseq.$chr.RData",

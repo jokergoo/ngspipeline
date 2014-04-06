@@ -1,24 +1,26 @@
 #!/bin/perl/bin/
 
+# load neccessary modules
+# put ./lib into @INC
 BEGIN {
 	use File::Basename;
 	unshift(@INC, dirname($0)."/lib");
 }
 
-my $SCRIPT_DIR = dirname($0);
 
 use strict;
 
+# general modules that should be loaded
 use CO::PipelineMaker;
 use File::Basename;
-use CO::NGSPipeline::Getopt;
+use CO::NGSPipeline::Getopt;   # validate command-line arguments
 
+# pipeline modules
 use CO::NGSPipeline::Pipeline::Bismark;
 use CO::NGSPipeline::Pipeline::BSMAP;
 use CO::NGSPipeline::Pipeline::methylCtools;
 
-
-
+# command line options
 my $opt = CO::NGSPipeline::Getopt->new;
 
 $opt->before("
@@ -50,46 +52,50 @@ FEATURES:
 
 ");
 
-my $wd = "analysis";
-my $tool = "bsmap";
+# default values, also defined in CO::PipelineMaker
+my $wd        = "analysis";
+my $tool      = "bsmap";
 my $list;
-my $std_dir;
-my $enforce = 0;
+my $enforce   = 0;
 my $request_sampleid;
-my $no_bissnp = 0;
-my $do_test = 0;
-my $filesize = 1024*1024;
-my $prefix = "";
+my $no_bissnp = 0;   # by default to use bissnp
+my $do_test   = 0;
+my $filesize  = 1024*1024;   # at least output file size should larger than 1M, this value can be overwrite inside each step (Tool:: modules)
+my $prefix    = "";
+my $email     = 'z.gu@dkfz.de';
+my $species   = 'human';
 
-$opt->add(\$list, "list=s");
-$opt->add(\$wd, "dir=s");
-$opt->add(\$tool, "tool=s", "available tools: bismark, bsmap, methyctools");
-$opt->add(\$enforce, "enforce");
+# common arguments
+$opt->add(\$list,             "list=s");
+$opt->add(\$wd,               "dir=s");
+$opt->add(\$tool,             "tool=s",
+                              "available tools: bsmap, (bismark, methyctools still have bugs)");
+$opt->add(\$enforce,          "enforce!");
 $opt->add(\$request_sampleid, "sample=s");
-$opt->add(\$do_test, "test");
-$opt->add(\$filesize, "filesize=i");
-$opt->add(\$prefix, "prefix=s");
-$opt->add(\$no_bissnp, "no-bissnp", "whether use BisSNP or methylation calling script of each tool to do methylation calling. By default, the three pipelines use BisSNP.");
+$opt->add(\$do_test,          "test!");
+$opt->add(\$filesize,         "filesize=i");
+$opt->add(\$prefix,           "prefix=s");
+$opt->add(\$email,            "email=s");
+$opt->add(\$species,          "species=s",
+	                          "human (default) or mouse");
 
+# specific arguments for WGBS pipeline
+$opt->add(\$no_bissnp,        "nobissnp!",
+                              "whether use BisSNP or methylation calling script of each tool to do methylation calling. There is QC report only if you use BisSNP. By default, the three pipelines use BisSNP.");
+
+# parse command line arguments, validate sample list file and transform
 $opt->getopt;
 
-my $sample = $list;
+# $list is like:
+# $list->{sample_id}->{r1} = [lane1.r1, lane2.r1, ...]
+# $list->{sample_id}->{r1} = [lane1.r2, lane2.r2, ...]
 
-foreach my $sample_id (sort keys %$sample) {
+foreach my $sample_id (sort keys %$list) {
 	
 	print "=============================================\n";
 	print "submit pipeline for $sample_id\n";
 	
-	my $r1 = $sample->{$sample_id}->{r1};
-	my $r2 = $sample->{$sample_id}->{r2};
-	my $library = $sample->{$sample_id}->{library};
-
-	my $pm = CO::PipelineMaker->new(dir => "$wd/$sample_id",
-	                                enforce => $enforce,
-									do_test => $do_test,
-									filesize => $filesize,
-									prefix => $prefix,);
-	
+	# initialize specific pipeline;
 	my $pipeline;
 	if($tool eq "bismark") {
 	
@@ -103,22 +109,32 @@ foreach my $sample_id (sort keys %$sample) {
 	
 		$pipeline = CO::NGSPipeline::Pipeline::methylCtools->new();
 		
-	} elsif($tool eq "bsseq") {
-	
-		$pipeline = CO::NGSPipeline::Pipeline::BSSEQ->new();
-		
 	} else {
 		die "--tool can only be set to one of 'bismark', 'bsmap' and 'methylctools'.\n";
 	}
 	
+	my $r1      = $list->{$sample_id}->{r1};            # array reference, r1 lanes for this sample
+	my $r2      = $list->{$sample_id}->{r2};            # array reference, r2 lanes for this sample
+	my $library = $list->{$sample_id}->{library};
+	
+	# send PipelineMaker object to the pipeline
+	my $pm = CO::PipelineMaker->new(dir      => "$wd/$sample_id",
+	                                enforce  => $enforce,
+									do_test  => $do_test,
+									filesize => $filesize,
+									prefix   => $prefix,
+									email    => $email,);
+	
 	$pipeline->set_pipeline_maker($pm);
-	# passing parameters for the pipeline
+	
+	# passing specific parameters for the pipeline
 	$pipeline->run(sample_id => $sample_id,
-		               r1 => $r1,
-					   r2 => $r2,
-					   library => $library,
-					   no_bissnp =>$no_bissnp,
-					   );
+                   r1        => $r1,
+                   r2        => $r2,
+                   library   => $library,
+                   no_bissnp => $no_bissnp,
+                   species   => $species,
+                  );
 		
 }
 

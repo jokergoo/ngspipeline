@@ -2,6 +2,10 @@ package CO::NGSPipeline;
 
 use strict;
 
+# This module is a universal base module for all pipeline.
+# Its main function is to pass the PipelineMaker object to each pipeline and 
+# each step
+
 sub set_pipeline_maker {
 	my $pipeline = shift;
 	my $pm = shift;
@@ -17,7 +21,8 @@ sub get_pipeline_maker {
 	return $pipeline->{_pipeline_maker};
 }
 
-
+### It also dispatch individual steps to pipelines by internally passing the 
+# PipelineMaker object
 
 ############################################################################
 # tools section
@@ -27,11 +32,13 @@ use CO::NGSPipeline::Tool::BSseq::Bismark;
 use CO::NGSPipeline::Tool::BSseq::Bsmooth;
 use CO::NGSPipeline::Tool::BSseq::BisSNP;
 use CO::NGSPipeline::Tool::BSseq::methylCtools;
+
 use CO::NGSPipeline::Tool::RNAseq::GeneFusion;
 use CO::NGSPipeline::Tool::RNAseq::TopHat;
 use CO::NGSPipeline::Tool::RNAseq::STAR;
 use CO::NGSPipeline::Tool::RNAseq::GSNAP;
 
+# invoking a method in BSMAP tools module
 sub bsmap {
 	my $self = shift;
 	my $pm = $self->get_pipeline_maker;

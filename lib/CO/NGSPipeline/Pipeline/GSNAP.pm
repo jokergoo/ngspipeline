@@ -49,7 +49,7 @@ sub run {
 	
 		
 	my $qid = {};
-	$qid->{alignment} = [];
+	$qid->{flagstat} = [];
 	my $sam_sort_list = [];
 	for(my $i = 0; $i < scalar(@$r1); $i ++) {
 
@@ -107,7 +107,7 @@ sub run {
 		##################################################################
 		$pm->set_job_name("$sample_id"."_gsnap_align_$i");
 		$pm->set_job_dependency($qid->{trim});
-		$qid->{alignment}->[$i] = $pipeline->gsnap->align(
+		$qid->{alignment} = $pipeline->gsnap->align(
 			fastq1 => "$prefix1.trimmed.$i.fastq.gz",
 			fastq2 => "$prefix2.trimmed.$i.fastq.gz",
 			output => "$pm->{dir}/$sample_id.$i.bam",
@@ -120,8 +120,8 @@ sub run {
 		# flagstat
 		####################################################################
 		$pm->set_job_name("$sample_id"."_gsnap_flagstat_$i");
-		$pm->set_job_dependency($qid->{alignment}->[$i]);
-		$qid->{flagstat} = $pipeline->gsnap->samtools_flagstat(
+		$pm->set_job_dependency($qid->{alignment});
+		$qid->{flagstat}->[$i] = $pipeline->gsnap->samtools_flagstat(
 			sam          => "$pm->{dir}/$sample_id.$i.bam",
 			output       => "$pm->{dir}/$sample_id.$i.flagstat",
 			delete_input => 0
@@ -132,7 +132,7 @@ sub run {
 	
 	if($remove_duplicate) {
 		$pm->set_job_name("$sample_id"."_gsnap_merge_and_nodup");
-		$pm->set_job_dependency(@{$qid->{alignment}});
+		$pm->set_job_dependency(@{$qid->{flagstat}});
 		$qid->{remove_duplicate} = $pipeline->gsnap->merge_nodup(
 			sam_list     => $sam_sort_list,
 			output       => "$pm->{dir}/$sample_id.merged.bam",
@@ -140,7 +140,7 @@ sub run {
 		);
 	} else {
 		$pm->set_job_name("$sample_id"."_gsnap_merge");
-		$pm->set_job_dependency(@{$qid->{alignment}});
+		$pm->set_job_dependency(@{$qid->{flagstat}});
 		$qid->{remove_duplicate} = $pipeline->gsnap->merge_sam(
 			sam_list     => $sam_sort_list,
 			output       => "$pm->{dir}/$sample_id.merged.bam",

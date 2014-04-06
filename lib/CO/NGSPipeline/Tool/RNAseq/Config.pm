@@ -15,6 +15,7 @@ our @EXPORT = qw($BOWTIE_INDEX
                  $GENCODE_BOWTIE2_INDEX
                  $GENCODE_GTF
                  $GENCODE_GTF_STAR
+                 $GENCODE_DEXSEQ_GTF
                  $GENOME_1KG
                  $GENOME_HG19
                  $GSNAP_GENOME_DIR
@@ -25,19 +26,21 @@ our @EXPORT = qw($BOWTIE_INDEX
                  $DEFUSE_DIR
                  $DEFUSE_CONFIG_FILE
                  $FUSIONHUNTER_BIN_DIR
-                 $FUSIONHUNTER_DIR);
+                 $FUSIONHUNTER_DIR
+                 $STAR
+                 $TOPHAT2);
 
 our $BOWTIE_INDEX = $CO::NGSPipeline::Tool::Config::BOWTIE_INDEX;
 our $BOWTIE2_INDEX = $CO::NGSPipeline::Tool::Config::BOWTIE2_INDEX;
 
 our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR_Gencode_Broad/genome/';
-#our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR_SIMON/genome/';
-#our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR/genome/';
+#our $STAR_GENOME = '/icgc/lsdf/mb/analysis/guz/genome/RNAseq_genome/STAR_gencode19/';
 
 # gencode
 our $GENCODE_BOWTIE_INDEX = $CO::NGSPipeline::Tool::Config::GENCODE_BOWTIE_INDEX;
 our $GENCODE_BOWTIE2_INDEX = $CO::NGSPipeline::Tool::Config::GENCODE_BOWTIE2_INDEX;
 our $GENCODE_GTF = $CO::NGSPipeline::Tool::Config::GENCODE_GTF;
+our $GENCODE_DEXSEQ_GTF = $CO::NGSPipeline::Tool::Config::GENCODE_DEXSEQ_GTF;
 
 # genome
 our $GENOME_HG19 = $CO::NGSPipeline::Tool::Config::GENOME_HG19;
@@ -59,4 +62,7 @@ our $DEFUSE_CONFIG_FILE = '/ibios/co02/guz/program/gene_fusion/deFuse/defuse-0.6
 our $FUSIONHUNTER_BIN_DIR = '/ibios/co02/guz/program/gene_fusion/FusionHunter/FusionHunter-v1.4/bin';
 our $FUSIONHUNTER_DIR = '/ibios/co02/guz/program/gene_fusion/FusionHunter';
 
+
+our $STAR = '/ibios/tbi_cluster/11.4/x86_64/bin/STAR-2.3.0e';
+our $TOPHAT2 = '/ibios/tbi_cluster/11.4/x86_64/bin/tophat2';
 1;

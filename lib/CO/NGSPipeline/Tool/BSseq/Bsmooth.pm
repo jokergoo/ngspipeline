@@ -2,6 +2,7 @@ package CO::NGSPipeline::Tool::BSseq::Bsmooth;
 
 use strict;
 use CO::NGSPipeline::Tool::BSseq::Config;
+use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 use File::Temp qw/tempfile/;
 use File::Basename;
@@ -50,7 +51,7 @@ sub RData {
 	
 	my $R = <<R;
 	
-library(bsseq)
+library(bsseq, lib.loc = "/home/guz/R/x86_64-unknown-linux-gnu-library/3.0")
 d = read.table($file_str, sep = "\t", stringsAsFactors = FALSE)
 chr = d[[1]]
 M = cbind(round(d[[4]]/100*d[[5]]))
@@ -80,7 +81,7 @@ R
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_dmr_extract",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "30GB",
-										walltime => "10:00:00"});
+										walltime => "30:00:00"});
 
 }
 

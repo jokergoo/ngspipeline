@@ -25,8 +25,15 @@ our @EXPORT = qw($BISMARK_BIN_DIR
                  $METHYLCTOOLS_REF_GENOME
                  $METHYLCTOOLS_REF_GENOME_CONV
 				 
-				 $GENOME_DIR
-				 $REF_GENOME
+		$GENOME_DIR
+		$REF_GENOME
+
+                $BSMAP_REF_GENOME_MM
+                $REF_GENOME_MM
+                $BISSNP_INTERVAL_FILE_MM
+                $BISSNP_INDEL_1_FILE_MM
+                $BISSNP_INDEL_2_FILE_MM
+                $BISSNP_DBSNP_FILE_MM
                  );
 
 our $BISMARK_BIN_DIR = '/ibios/co02/guz/program/BSTools/bismark_bin';  # relative path to config.pm
@@ -38,16 +45,24 @@ our $BISSNP_BIN_DIR  = '/ibios/co02/guz/program/BSTools/bissnp_bin';
 our $BISMARK_GENOME_DIR = '/icgc/lsdf/mb/analysis/guz/genome/WGBS_genome/genome_bismark_hg19';
 our $BISMARK_REF_GENOME = 'hg19.fa';
 
+
 our $BSMAP_GENOME_DIR = '/icgc/lsdf/mb/analysis/guz/genome/WGBS_genome/genome_protocol';  # add lambda genome
 our $BSMAP_REF_GENOME = 'hg19.fa';
+our $BSMAP_REF_GENOME_MM = 'mm9_lambda.fa';
 
 our $GENOME_DIR = '/icgc/lsdf/mb/analysis/guz/genome/WGBS_genome/genome_protocol';
 our $REF_GENOME = 'hg19.fa';
+our $REF_GENOME_MM = 'mm9_lambda.fa';
 
 our $BISSNP_INTERVAL_FILE = '/icgc/lsdf/mb/analysis/guz/genome/bissnp_files/whole_genome_interval_list.hg19.bed';
 our $BISSNP_INDEL_1_FILE  = '/icgc/lsdf/mb/analysis/guz/genome/bissnp_files/1000G_phase1.indels.hg19.sort.vcf';
 our $BISSNP_INDEL_2_FILE  = '/icgc/lsdf/mb/analysis/guz/genome/bissnp_files/Mills_and_1000G_gold_standard.indels.hg19.sites.sort.vcf';
 our $BISSNP_DBSNP_FILE    = '/icgc/lsdf/mb/analysis/guz/genome/bissnp_files/dbsnp_135.hg19.sort.vcf';
+
+our $BISSNP_INTERVAL_FILE_MM = '/icgc/lsdf/mb/analysis/guz/genome/bissnp_files/whole_genome_interval_list.mm9.bed';
+our $BISSNP_INDEL_1_FILE_MM  = '/icgc/lsdf/mb/analysis/guz/genome/bissnp_files/mouse-20110602-callable-dinox-indels.annot.mm9.vcf';
+our $BISSNP_INDEL_2_FILE_MM  = '/icgc/lsdf/mb/analysis/guz/genome/bissnp_files/mouse-20110602-callable-dinox-indels.annot.mm9.vcf';
+our $BISSNP_DBSNP_FILE_MM    = '/icgc/lsdf/mb/analysis/guz/genome/bissnp_files/mouse-20111102-snps-all.annotated.mm9.vcf';
 
 our $METHYLCTOOLS_BIN_DIR            = '/ibios/co02/guz/program/BSTools/methylCtools_bin';
 our $METHYLCTOOLS_REFERENCE_POS_FILE = 'hg19.reference.pos.gz';

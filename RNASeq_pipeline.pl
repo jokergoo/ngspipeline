@@ -10,6 +10,7 @@ use CO::PipelineMaker;
 use File::Basename;
 use CO::NGSPipeline::Getopt;
 
+# pieline this script supports
 use CO::NGSPipeline::Pipeline::GSNAP;
 use CO::NGSPipeline::Pipeline::TopHat;
 use CO::NGSPipeline::Pipeline::STAR;
@@ -21,7 +22,7 @@ use CO::NGSPipeline::Pipeline::TopHatFusion;
 my $opt = CO::NGSPipeline::Getopt->new;
 
 $opt->before("
-RNAseq pipeline.
+RNAseq pipeline (support alignment and fusion detection).
 
 USAGE:
 
@@ -40,66 +41,51 @@ first to generate sample list file.
 
 ");
 
-my $wd = "analysis";
-my $tool = "bsmap";
+# default values
+my $wd                 = "analysis";
+my $tool               = "star";
 my $list;
-my $std_dir;
-my $enforce = 0;
+my $enforce            = 0;
 my $request_sampleid;
-my $is_strand_specific = 0;
-my $remove_duplicate = 0;
-my $do_test = 0;
-my $filesize = 1024*1024;
-my $prefix = "";
+my $do_test            = 0;
+my $filesize           = 1024*1024;
+my $prefix             = "";
+my $email              = 'z.gu@dkfz.de';
 
-$opt->add(\$list, "list=s");
-$opt->add(\$wd, "dir=s");
-$opt->add(\$tool, "tool=s", "available tools: tophat, star, gsnap, defuse, fusionmap, fusionhunter");
-$opt->add(\$enforce, "enforce");
-$opt->add(\$request_sampleid, "sample=s");
-$opt->add(\$do_test, "test");
-$opt->add(\$filesize, "filesize=i");
-$opt->add(\$prefix, "prefix=s");
-$opt->add(\$is_strand_specific, "strand", "strand specific");
-$opt->add(\$remove_duplicate, "nodup", "remove duplicate. Currently there is no common agreement on whether it needs to remove duplicates or not.");
+my $is_strand_specific = 0;
+my $remove_duplicate   = 0;
+
+$opt->add(\$list,               "list=s");
+$opt->add(\$wd,                 "dir=s");
+$opt->add(\$tool,               "tool=s", 
+                                "available tools: tophat, star, gsnap, defuse, fusionmap, fusionhunter");
+$opt->add(\$enforce,            "enforce");
+$opt->add(\$request_sampleid,   "sample=s");
+$opt->add(\$do_test,            "test");
+$opt->add(\$filesize,           "filesize=i");
+$opt->add(\$prefix,             "prefix=s");
+$opt->add(\$email,              "email=s");
 
 $opt->getopt;
 
-my $sample = $list;
-
-foreach my $sample_id (sort keys %$sample) {
-	
-	my $r1 = $sample->{$sample_id}->{r1};
-	my $r2 = $sample->{$sample_id}->{r2};
-	
-	if(($tool eq "defuse" or $tool eq "fusionmap" or $tool eq "fusionhunter") and scalar(@$r1) > 1) {
-		die "Currently only support one lane per sample for gene fusion. $sample_id has multiple lanes.\n";
-	}
+if($is_strand_specific) {
+	$prefix = $prefix.($prefix ? "_ss" : "ss");
 }
 
-foreach my $sample_id (sort keys %$sample) {
+foreach my $sample_id (sort keys %$list) {
+	
+	my $r1 = $list->{$sample_id}->{r1};
+	my $r2 = $list->{$sample_id}->{r2};
+	
+	#if(($tool eq "defuse" or $tool eq "fusionmap" or $tool eq "fusionhunter") and scalar(@$r1) > 1) {
+	#	die "Currently only support one lane per sample for gene fusion pipeline. $sample_id has multiple lanes.\n";
+	#}
+}
+
+foreach my $sample_id (sort keys %$list) {
 	
 	print "=============================================\n";
 	print "submit pipeline for $sample_id\n";
-	
-	my $r1 = $sample->{$sample_id}->{r1};
-	my $r2 = $sample->{$sample_id}->{r2};
-	my $library = $sample->{$sample_id}->{library};
-
-	my $pm = CO::PipelineMaker->new(dir => "$wd/$sample_id",
-	                                enforce => $enforce,
-									do_test => $do_test,
-									filesize => $filesize,
-									prefix => $prefix,);
-
-	# prefix means absolute path without fast/fq or fast.gz/fq.gz
-	my $prefix1 = basename($r1->[0]);
-	$prefix1 =~s/\.(fq|fastq)(\.gz)?$//;
-	$prefix1 = "$pm->{dir}/$prefix1";
-	my $prefix2 = basename($r2->[0]);
-	$prefix2 =~s/\.(fq|fastq)(\.gz)?$//;
-	$prefix2 = "$pm->{dir}/$prefix2";
-	
 	
 	my $pipeline;
 	if($tool eq "gsnap") {
@@ -118,29 +104,40 @@ foreach my $sample_id (sort keys %$sample) {
 	
 		$pipeline = CO::NGSPipeline::Pipeline::deFuse->new();
 		
-	} elsif($tool eq "fusionmap") {
-	
-		$pipeline = CO::NGSPipeline::Pipeline::FusionMap->new();
-		
-	} elsif($tool eq "fusionhunter") {
-	
-		$pipeline = CO::NGSPipeline::Pipeline::FusionHunter->new();
-		
-	} elsif($tool eq "tophatfusion") {
-	
-		$pipeline = CO::NGSPipeline::Pipeline::TopHatFusion->new();
-		
+#	} elsif($tool eq "fusionmap") {
+#	
+#		$pipeline = CO::NGSPipeline::Pipeline::FusionMap->new();
+#		
+#	} elsif($tool eq "fusionhunter") {
+#	
+#		$pipeline = CO::NGSPipeline::Pipeline::FusionHunter->new();
+#		
+#	} elsif($tool eq "tophatfusion") {
+#	
+#		$pipeline = CO::NGSPipeline::Pipeline::TopHatFusion->new();
+#		
 	} else {
-		die "--tool can only be set to one of 'gsnap', 'tophat', 'star', 'defuse', 'fusionmap' and 'fusionhunter'.\n";
+		die "--tool can only be set to one of 'gsnap', 'tophat', 'star', 'defuse'.\n";
 	}
 	
+	my $r1 = $list->{$sample_id}->{r1};
+	my $r2 = $list->{$sample_id}->{r2};
+	my $library = $list->{$sample_id}->{library};
+
+	my $pm = CO::PipelineMaker->new(dir      => "$wd/$sample_id",
+	                                enforce  => $enforce,
+									do_test  => $do_test,
+									filesize => $filesize,
+									prefix   => $prefix,
+									email    => $email,);
+
 	$pipeline->set_pipeline_maker($pm);
-	$pipeline->run(sample_id => $sample_id,
-		               r1 => $r1,
-					   r2 => $r2,
-					   library => $library,
-					   is_strand_specific =>$is_strand_specific,
-					   remove_duplicate => $remove_duplicate,
+	$pipeline->run(sample_id              => $sample_id,
+		               r1                 => $r1,
+					   r2                 => $r2,
+					   library            => $library,
+					   is_strand_specific => $is_strand_specific,
+					   remove_duplicate   => $remove_duplicate,
 					   );
 					   
 }

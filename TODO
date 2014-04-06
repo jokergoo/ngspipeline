@@ -1,3 +1,7 @@
 
 - add docs
-
+- do a linear regression for the running time and file size of FastQ file.
+- estimate running time for mark duplicate and bissnp by file size of FastQ file size
+- different sample for a same PID (library column in sample list file)
+- put global variables into a simple text file and also set it as an command-line option
+- create a folder for each step

@@ -6,7 +6,7 @@ The pipeline uses {\it BisSNP} to call mathylation. Software
 as well as their parameters for each step is listed:
 
 \begin{enumerate}
-  \item {\bf quality and adapter trimming}: by {\it \href{http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/}{Trim Galore}}, use default settings
+  \item {\bf quality and adapter trimming}: by {\it cutadapt}.
   [% IF tool == "bismark" %]
   \item {\bf alignment}: {\tt \href{http://www.bioinformatics.babraham.ac.uk/projects/bismark/}{Bismark}} (v0.8.3) is used for alignment Explictely specified parameters are {\tt --bowtie2 -N 1 --score_min L,0,-0.6} which means use bowtie2 to do alignment, permit one mismatch in seed alignment, minimal alignment score should be about -20.
   [% ELSIF tool == "bsmap" %]
@@ -92,7 +92,7 @@ Duplicate statistics for [% f_duplicate.basename().replace("_", "\\_") %].
 [% PROCESS duplicate %]
 [% END %]
 
-\section{methylation calling}
+\section{methylation calling (single strand)}
 [% PROCESS bissnp %]
 
 [% PROCESS footer %]

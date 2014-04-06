@@ -37,37 +37,43 @@ sub run {
 	my $dir = $param{dir};
 	my $is_strand_specific = $param{is_strand_specific};
 	
-	# prefix means absolute path without fast/fq or fast.gz/fq.gz
-	my $prefix1 = basename($r1->[0]);
-	$prefix1 =~s/\.(fq|fastq)(\.gz)?$//;
-	$prefix1 = "$pm->{dir}/$prefix1";
-	my $prefix2 = basename($r2->[0]);
-	$prefix2 =~s/\.(fq|fastq)(\.gz)?$//;
-	$prefix2 = "$pm->{dir}/$prefix2";
-	
 	
 	my $qid;
-
+	my $trimmed_fastq1_arrayref = [];
+	my $trimmed_fastq2_arrayref = [];
+	
+	
 	my $r1_fastq = $r1->[0];
 	my $r2_fastq = $r2->[0];
 	
 	
-	####################################################################
-	# trim
-	####################################################################
-	#$pm->set_job_name("$sample_id"."_fusionhunter_trimmed");
-	#$qid->{trim} = $pipeline->genefusion->trim(
-	#	fastq1  => $r1_fastq,
-	#	fastq2  => $r2_fastq,
-	#	output1 => "$prefix1.trimmed.fastq",
-	#	output2 => "$prefix2.trimmed.fastq",
-	#	polya   => 1,
-	#);	
+	for(my $i = 0; $i < scalar(@$r1); $i ++) {
+		
+		my $r1_fastq = $r1->[$i];
+		my $r2_fastq = $r2->[$i];
+		
+		
+		####################################################################
+		# trim
+		####################################################################
+		$pm->set_job_name("$sample_id"."_defuse_trimmed");
+		$qid->{trim} = $pipeline->genefusion->trim(
+			fastq1  => $r1_fastq,
+			fastq2  => $r2_fastq,
+			output1 => "$sample_id.trimmed.r1.fastq.gz",
+			output2 => "$sample_id.trimmed.r2.fastq.gz",
+			polya   => 1,
+		);
+		
+		push(@$trimmed_fastq1_arrayref, "$sample_id.trimmed.r1.fastq.gz");
+		push(@$trimmed_fastq2_arrayref, "$sample_id.trimmed.r2.fastq.gz");
+		
+	}	
 	
 	$pm->set_job_name("$sample_id"."_fusionhunter");
 	$qid = $pipeline->genefusion->fusionhunter(
-		fastq1 => "$r1_fastq",
-		fastq2 => "$r2_fastq",
+		fastq1_arrayref => $trimmed_fastq1_arrayref,
+		fastq2_arrayref => $trimmed_fastq2_arrayref,
 		delete_input => 0,
 	);
 }

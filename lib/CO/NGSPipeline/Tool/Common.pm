@@ -26,12 +26,14 @@ sub fastqc {
 	if(! -e $output_dir) {
 		$pm->add_command("mkdir -p $output_dir", 0);
 	}
-	$pm->add_command("fastqc -o $output_dir $fastq");
-
+	$pm->add_command("$FASTQC -o $output_dir $fastq");
+	my $f = basename($fastq);
+	$f =~s/\.(fastq|fq)(\.gz)?$/_fastqc.zip/i;
+	$pm->check_filesize("$output_dir/$f", 10*1024); # 10K
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_fastqc",
 					          "-l" => { nodes => "1:ppn=1:lsdf",
 							            mem => "1GB",
-							            walltime => "5:00:00"},);
+							            walltime => "30:00:00"},);
 	return($qid);
 	
 }
@@ -64,16 +66,24 @@ sub trim {
 	my $fastq2  = to_abs_path( $param{fastq2} );
 	my $output1 = to_abs_path( $param{output1} );
 	my $output2 = to_abs_path( $param{output2} );
-	my $polya = $param{polya};
+	my $polya = $param{polya};  # now it is not supported
 	
 	my $delete_input = $param{delete_input};
 	
-	$pm->add_command("perl $TRIMPAIR_BIN_DIR/trim.pl --fastq1=$fastq1 --fastq2=$fastq2 --output1=$output1 --output2=$output2 --tmp=$pm->{tmp_dir}");
-	
-	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_trim",
-					          "-l" => { nodes => "1:ppn=3:lsdf",
-							            mem => "1GB",
-							            walltime => "50:00:00"},);
+	my $qid;
+	if($fastq2) {
+		$pm->add_command("perl $TRIMPAIR_BIN_DIR/trim.pl --fastq1=$fastq1 --fastq2=$fastq2 --output1=$output1 --output2=$output2 --tmp=$pm->{tmp_dir}");
+		$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_trim",
+								  "-l" => { nodes => "1:ppn=3:lsdf",
+											mem => "1GB",
+											walltime => "50:00:00"},);
+	} else {
+		$pm->add_command("$CUTADAPT $fastq1 --quality-base 33 --quality_cutoff 20 --adapter AGATCGGAAGAGC ---minimum-length 20 | gzip -c > $output1");
+		$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_trim",
+								  "-l" => { nodes => "1:ppn=1:lsdf",
+											mem => "1GB",
+											walltime => "50:00:00"},);
+	}
 	return($qid);
 }
 
@@ -86,6 +96,8 @@ Sort SAM or BAM files
   delete_input  whether delete input files
  
 =cut
+
+# sort_sam would be used by pipe
 sub sort_sam {
 	my $self = shift;
 	
@@ -104,15 +116,15 @@ sub sort_sam {
 	
 	my $pm = $self->get_pipeline_maker;
 	
-	$pm->add_command("JAVA_OPTIONS=-Xmx16G picard.sh SortSam INPUT=$sam OUTPUT=$output SORT_ORDER=$sort_by TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT");
+	$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh SortSam INPUT=$sam OUTPUT=$output SORT_ORDER=$sort_by TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT MAX_RECORDS_IN_RAM=50000000");
 	if($output =~/\.bam$/ and $add_index) {
-		$pm->add_command("samtools index $output");
+		$pm->add_command("$SAMTOOLS index $output");
 	}
 	$pm->check_filesize($output);
 	$pm->del_file($sam) if($delete_input);
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_sort_sam",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
-									    mem => "16GB",
+									    mem => "50GB",
 										walltime => "20:00:00"});
 	return($qid);
 }
@@ -141,9 +153,9 @@ sub samtools_view {
 	my $pm = $self->get_pipeline_maker;
 	
 	if($input =~/\.sam$/ and $output =~/\.bam/) {
-		$pm->add_command("samtools view -Sbh $input -o $output");
+		$pm->add_command("$SAMTOOLS view -Sbh $input -o $output");
 	} elsif($input =~/\.bam$/ and $output =~/\.sam/) {
-		$pm->add_command("samtools view -h $input -o $output");
+		$pm->add_command("$SAMTOOLS view -h $input -o $output");
 	} else {
 		die "Wrong extended file name.\n";
 	}
@@ -176,6 +188,7 @@ sub merge_nodup {
 				   "library" => undef,
 				   "delete_input" => 0,
 				   "sort_by" => "coordinate",
+				   "REMOVE_DUPLICATES" => 'TRUE',
 				   @_);
 	
 	
@@ -185,6 +198,7 @@ sub merge_nodup {
 	my $library = $param{library}; $library = defined($library) ? $library : rep(1, len($sam_list));
 	my $delete_input = $param{delete_input};
 	my $sort_by = $param{sort_by};
+	my $REMOVE_DUPLICATES = $param{REMOVE_DUPLICATES};
 	
 	$sam_list->[0] =~/\.(sam|bam)$/i;
 	my $suffix = $1;
@@ -200,7 +214,7 @@ sub merge_nodup {
 		$sam_file = $sam_list->[0];
 		$sam_nodup_file = $output;
 		$sam_nodup_metric_file = $output; $sam_nodup_metric_file =~s/\.(sam|bam)$/.mkdup.metrics/;
-		$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh MarkDuplicates INPUT=$sam_file OUTPUT=$output METRICS_FILE=$sam_nodup_metric_file TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT REMOVE_DUPLICATES=TRUE ASSUME_SORTED=TRUE CREATE_INDEX=TRUE MAX_RECORDS_IN_RAM=50000000");
+		$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh MarkDuplicates INPUT=$sam_file OUTPUT=$output METRICS_FILE=$sam_nodup_metric_file TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT REMOVE_DUPLICATES=$REMOVE_DUPLICATES ASSUME_SORTED=TRUE CREATE_INDEX=TRUE MAX_RECORDS_IN_RAM=50000000");
 		$pm->del_file($sam_file) if($delete_input);
 		$pm->del_file("$sam_file.bai") if($delete_input);
 	} else {
@@ -221,7 +235,7 @@ sub merge_nodup {
 				$sam_nodup_file = "$output";
 				$sam_nodup_file =~s/\.(sam|bam)$/.library_$library_subset_name.$1/;
 				$sam_nodup_metric_file = $sam_nodup_file; $sam_nodup_metric_file =~s/\.(sam|bam)$/.mkdup.metrics/;
-				$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh MarkDuplicates INPUT=$sam_file OUTPUT=$sam_nodup_file METRICS_FILE=$sam_nodup_metric_file TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT REMOVE_DUPLICATES=TRUE ASSUME_SORTED=TRUE CREATE_INDEX=TRUE MAX_RECORDS_IN_RAM=50000000");
+				$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh MarkDuplicates INPUT=$sam_file OUTPUT=$sam_nodup_file METRICS_FILE=$sam_nodup_metric_file TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT REMOVE_DUPLICATES=$REMOVE_DUPLICATES ASSUME_SORTED=TRUE CREATE_INDEX=TRUE MAX_RECORDS_IN_RAM=50000000");
 				$pm->del_file($sam_file) if($delete_input);
 				$pm->del_file("$sam_file.bai") if($delete_input);
 				
@@ -235,10 +249,10 @@ sub merge_nodup {
 				$sam_nodup_file = "$output";
 				$sam_nodup_file =~s/\.(sam|bam)$/.library_$library_subset_name.$1/;
 				$sam_nodup_metric_file = $sam_nodup_file; $sam_nodup_metric_file =~s/\.(sam|bam)$/.mkdup.metrics/;
-				$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh MarkDuplicates INPUT=$sam_sort_file OUTPUT=$sam_nodup_file METRICS_FILE=$sam_nodup_metric_file TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT REMOVE_DUPLICATES=TRUE ASSUME_SORTED=TRUE CREATE_INDEX=TRUE MAX_RECORDS_IN_RAM=50000000");
-				for(my $i = 0; $i < scalar(@$sam_list); $i ++) {
-					$pm->del_file($sam_list->[$i]) if($delete_input);
-					$pm->del_file("$sam_list->[$i].bai") if($delete_input);
+				$pm->add_command("JAVA_OPTIONS=-Xmx50G picard.sh MarkDuplicates INPUT=$sam_sort_file OUTPUT=$sam_nodup_file METRICS_FILE=$sam_nodup_metric_file TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT REMOVE_DUPLICATES=$REMOVE_DUPLICATES ASSUME_SORTED=TRUE CREATE_INDEX=TRUE MAX_RECORDS_IN_RAM=50000000");
+				for(my $i = 0; $i < scalar(@index); $i ++) {
+					$pm->del_file($sam_list->[ $index[$i] ]) if($delete_input);
+					$pm->del_file("$sam_list->[ $index[$i] ].bai") if($delete_input);
 				}
 				$pm->del_file("$sam_sort_file");
 			}
@@ -262,7 +276,7 @@ sub merge_nodup {
 				$input_str .= "INPUT=$sam_nodup_file->[$i] ";
 			}
 			$pm->add_command("JAVA_OPTIONS=-Xmx16G picard.sh MergeSamFiles $input_str OUTPUT=$output SORT_ORDER=$sort_by TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT");
-			$pm->add_command("samtools index $output");
+			$pm->add_command("$SAMTOOLS index $output");
 			for(my $i = 0; $i < scalar(@$sam_nodup_file); $i ++) {
 				$pm->del_file($sam_nodup_file->[$i]);
 				my $bai = $sam_nodup_file->[$i]; $bai =~s/\.bam/.bai/;
@@ -274,7 +288,7 @@ sub merge_nodup {
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_merge_nodup",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "55GB",
-										walltime => "100:00:00"});
+										walltime => "200:00:00"});
 
 	return($qid);
 }
@@ -366,12 +380,55 @@ sub sampe {
 	my $output = to_abs_path($param{output});
 	my $delete_input = $param{delete_input};
 	
+	if(!$fastq2) {
+		return($self->samse(aln1 => $aln1,
+		                    fastq1 => $fastq1,
+							genome => $genome,
+							output => $output,
+							delete_input => $delete_input));
+	}
+	
 	my $pm = $self->get_pipeline_maker;
 	
-	$pm->add_command("$BWA sampe $genome $aln1 $aln2 $fastq1 $fastq2 | samtools view -hbS - > $output");
+	my $r = time().rand();
+	$pm->add_command("$BWA sampe $genome $aln1 $aln2 $fastq1 $fastq2 | mbuffer -q -m 2G -l /dev/null | samtools view -uSbh - | mbuffer -q -m 2G -l /dev/null | samtools sort - $pm->{dir}/$r");
+	$pm->add_command("mv $pm->{dir}/$r.bam $output", 0);
+	$pm->add_command("$SAMTOOLS index $output");
 	$pm->del_file($aln1, $aln2, $fastq1, $fastq2) if($delete_input);
 	$pm->check_filesize($output); # 1M
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_sampe",
+							 "-l" => { nodes => "1:ppn=1:lsdf", 
+									    mem => "10GB",
+										walltime => "150:00:00"});
+
+	return($qid);
+}
+
+sub samse {
+	my $self = shift;
+	
+	my %param = ( "aln1" => undef,
+	              "fastq1" => undef,
+	              "genome" => undef,
+				  "output" => undef,
+				  "delete_input" => 0,
+				  @_);
+	
+	my $aln1 = to_abs_path($param{aln1});
+	my $fastq1 = to_abs_path($param{fastq1});
+	my $genome = to_abs_path($param{genome});
+	my $output = to_abs_path($param{output});
+	my $delete_input = $param{delete_input};
+	
+	my $pm = $self->get_pipeline_maker;
+	
+	my $r = time().rand();
+	$pm->add_command("$BWA sampe $genome $aln1 $fastq1 | mbuffer -q -m 2G -l /dev/null | samtools view -uSbh - | mbuffer -q -m 2G -l /dev/null | samtools sort - $pm->{dir}/$r");
+	$pm->add_command("mv $pm->{dir}/$r.bam $output", 0);
+	$pm->add_command("$SAMTOOLS index $output");
+	$pm->del_file($aln1, $fastq1) if($delete_input);
+	$pm->check_filesize($output); # 1M
+	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_samse",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "10GB",
 										walltime => "150:00:00"});
@@ -397,6 +454,12 @@ sub merge_sam {
 	
 	if(len($sam_list) == 1) {
 		$pm->add_command("mv $sam_list->[0] $output", 0);
+		$pm->add_command("if [ -f $sam_list->[0].bai ];then\n mv $sam_list->[0].bai $output.bai\nfi\n", 0);
+
+		my $tmp = $sam_list->[0];
+		$tmp =~s/\.[bs]am$/bai/;
+		$pm->add_command("if [ -f $tmp ];then\n mv $tmp $output.bai\nfi\n", 0);
+
 	} else {
 		my $input_str;
 		for(my $i = 0; $i < scalar(@$sam_list); $i ++) {
@@ -432,12 +495,12 @@ sub samtools_flagstat {
 	
 	my $pm = $self->get_pipeline_maker;
 	
-	$pm->add_command("samtools flagstat $sam > $output");
+	$pm->add_command("$SAMTOOLS flagstat $sam > $output");
 	
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_flagstat",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "10GB",
-										walltime => "5:00:00"});
+										walltime => "30:00:00"});
 	return($qid);
 }
 
@@ -463,7 +526,7 @@ sub picard_metrics {
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_picard_metrics",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "10GB",
-										walltime => "10:00:00"});
+										walltime => "20:00:00"});
 	return($qid);
 }
 
@@ -484,7 +547,7 @@ sub picard_insertsize {
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_picard_metrics",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
 									    mem => "2GB",
-										walltime => "2:00:00"});
+										walltime => "20:00:00"});
 	return($qid);
 }
 

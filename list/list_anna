@@ -110,3 +110,6 @@ AK217	/icgc/lsdf/mb/analysis/B060_016/raw/130615_SN1007_0168_BC13JPACXX/raw_sequ
 		
 AK173	/icgc/lsdf/mb/analysis/hovestad/ICGC_methylome/wgbs_fastq/run130320_SN7001177_0117_AD18W8ACXX/AK173_NoIndex_L006_R1_complete_filtered.fastq.gz	/icgc/lsdf/mb/analysis/hovestad/ICGC_methylome/wgbs_fastq/run130320_SN7001177_0117_AD18W8ACXX/AK173_NoIndex_L006_R2_complete_filtered.fastq.gz
 AK173	/icgc/lsdf/mb/analysis/B060_016/raw/130731_SN7001149_0152_BD18W7ACXX/raw_sequence_data/AK173_NoIndex_L002_R1_complete_filtered.fastq.gz	/icgc/lsdf/mb/analysis/B060_016/raw/130731_SN7001149_0152_BD18W7ACXX/raw_sequence_data/AK173_NoIndex_L002_R2_complete_filtered.fastq.gz
+
+AK165	/icgc/lsdf/mb/analysis/hovestad/ICGC_methylome/wgbs_fastq/run120417_SN841_0135_AC0KPLACXX/GBM_P165_NoIndex_L007_R1_complete_filtered.fastq.gz	/icgc/lsdf/mb/analysis/hovestad/ICGC_methylome/wgbs_fastq/run120417_SN841_0135_AC0KPLACXX/GBM_P165_NoIndex_L007_R2_complete_filtered.fastq.gz			
+AK165	/icgc/lsdf/mb/analysis/B060_016/raw/130822_SN509_0237_BC2F63ACXX/raw_sequence_data/AK165_NoIndex_L006_R1_complete_filtered.fastq.gz	/icgc/lsdf/mb/analysis/B060_016/raw/130822_SN509_0237_BC2F63ACXX/raw_sequence_data/AK165_NoIndex_L006_R2_complete_filtered.fastq.gz

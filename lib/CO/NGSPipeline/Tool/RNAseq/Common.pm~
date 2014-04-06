@@ -36,7 +36,7 @@ sub rnaseqqc {
 	$pm->add_command("picard.sh AddOrReplaceReadGroups INPUT=$bam OUTPUT=$bam_rg RGID=readGroup_name RGLB=readGroup_name RGPL=illumina RGPU=run RGSM=sample_name SORT_ORDER=coordinate CREATE_INDEX=true TMP_DIR=$pm->{tmp_dir}");
 	$pm->add_command("picard.sh ReorderSam INPUT=$bam_rg OUTPUT=$bam_reorder CREATE_INDEX=true R=$GENOME_HG19 TMP_DIR=$pm->{tmp_dir}");
 	$pm->del_file("$bam_rg", "$bam_base.RG.bai");
-	$pm->add_command("java -jar /home/guz/GenePatternServer/taskLib/RNASeQC.2.0/RNAseqMetrics.jar -s $pm->{dir}/sample_list -t /icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/databases/gencode/gencode17/gencode.v17.annotation.gtf -r $GENOME_HG19 -n 1000 -o $pm->{dir}/rnaseqqc");
+	$pm->add_command("java -jar /home/guz/GenePatternServer/taskLib/RNASeQC.2.0/RNAseqMetrics.jar -s $pm->{dir}/sample_list -t $GENCODE_GTF -r $GENOME_HG19 -n 1000 -o $pm->{dir}/rnaseqqc");
 	$pm->del_file("$bam_reorder", "$bam_base.reorder.bai");
 	
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_rnaseqqc",
@@ -92,27 +92,75 @@ sub counting {
 	my $self = shift;
 	
 	my %param = ( "bam" => undef,
-	              "strand" => 0,
+		          "sample_id" => undef,
 	              @_);
 	
 	my $bam    = to_abs_path( $param{bam} );
-	my $strand = $param{"strand"} ? "yes" : "no";
-	
-	my $bam_prefix = $bam;
-	$bam_prefix =~s/\.bam$//;
+	my $sample_id = $param{sample_id};
 	
 	my $pm = $self->get_pipeline_maker;
+
+	$pm->add_command("
+S1=`awk 'NR==8{print \$5}' $pm->{dir}/rnaseqqc/$sample_id/$sample_id.metrics.txt`
+S2=`awk 'NR==8{print \$6}' $pm->{dir}/rnaseqqc/$sample_id/$sample_id.metrics.txt`
+
+if [ `echo \"\$S1<30\" | bc` -eq 1 ]
+then
+	STRAND='reverse'
+elif [ `echo \"\$s1>70\" | bc` -eq 1 ]
+then
+	STRAND='yes'
+else
+	STRAND='no'
+fi
+
+echo \"strand=\$STRAND\"
+", 0);
 	
-	$pm->add_command("JAVA_OPTIONS=-Xmx16G picard.sh SortSam INPUT=$bam OUTPUT=$bam.namesorted.bam SORT_ORDER=queryname TMP_DIR=$pm->{tmp_dir} VALIDATION_STRINGENCY=SILENT");
- 	#$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t gene - $GENCODE_GTF > $bam_prefix.gene.count");
- 	$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon -m intersection-nonempty - $GENCODE_GTF > $bam_prefix.exon.count");
- 	#$pm->add_command("samtools view $bam.namesorted.bam | htseq-count -s $strand -t exon -m intersection-nonempty - /icgc/lsdf/mb/analysis/guz/genome/gencode.v17.exon_union.gtf > $bam_prefix.exon_union.count");
-	$pm->del_file("$bam.namesorted.bam");
+	my $dexseq_script_dir = "/ibios/tbi_cluster/11.4/x86_64/R/R-3.0.0/lib64/R/library/DEXSeq/python_scripts";
+ 	
+	$pm->add_command("
+$SAMTOOLS view -F 0x0404 $bam | htseq-count -s \$STRAND -t exon -m intersection-nonempty - $GENCODE_GTF > $pm->{dir}/$sample_id.mkdup.exon.nodup.count
+$SAMTOOLS view -F 0x0004 $bam | htseq-count -s \$STRAND -t exon -m intersection-nonempty - $GENCODE_GTF > $pm->{dir}/$sample_id.mkdup.exon.count
+
+if [ \"\$STRAND\" != 'no' ]
+then
+	if [ \"\$STRAND\" == 'yes' ]
+	then
+		ANTISENSE='reverse'
+	else
+		ANTISENSE='yes'
+	fi
+	
+	$SAMTOOLS view -F 0x0404 $bam | htseq-count -s \$ANTISENSE -t exon -m intersection-nonempty - $GENCODE_GTF > $pm->{dir}/$sample_id.mkdup.exon.nodup.strand.count
+	$SAMTOOLS view -F 0x0004 $bam | htseq-count -s \$ANTISENSE -t exon -m intersection-nonempty - $GENCODE_GTF > $pm->{dir}/$sample_id.mkdup.exon.strand.count
+fi
+
+python $dexseq_script_dir/dexseq_prepare_annotation.py $GENCODE_GTF $pm->{dir}/gencode_for_dexseq.gff
+$SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $pm->{dir}/gencode_for_dexseq.gff - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.count
+$SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $pm->{dir}/gencode_for_dexseq.gff - $pm->{dir}/$sample_id.mkdup.dexseq.count
+
+if [ \"\$STRAND\" != 'no' ]
+then
+	if [ \"\$STRAND\" == 'yes' ]
+	then
+		ANTISENSE='reverse'
+	else
+		ANTISENSE='yes'
+	fi
+	
+	$SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $pm->{dir}/gencode_for_dexseq.gff - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.strand.count
+	$SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $pm->{dir}/gencode_for_dexseq.gff - $pm->{dir}/$sample_id.mkdup.dexseq.strand.count
+fi
+
+", 0);
+ 	
+ 	#$pm->del_file("$bam");
 
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_counting",
 							 "-l" => { nodes => "1:ppn=1:lsdf", 
-									    mem => "10GB",
-										walltime => "100:00:00"});
+									    mem => "1GB",
+										walltime => "100:00:00"},);
 	return($qid);
 }
 
