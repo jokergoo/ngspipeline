@@ -64,7 +64,7 @@ sub align {
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_star_align",
 							 "-l" => { nodes => "1:ppn=8:lsdf", 
 									    mem => "40GB",
-										walltime => "10:00:00"});
+										walltime => "15:00:00"});
 
 	return($qid);
 

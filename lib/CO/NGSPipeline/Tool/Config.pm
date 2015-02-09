@@ -38,11 +38,13 @@ our $BOWTIE2_INDEX = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/indexes
 # gencode
 our $GENCODE_BOWTIE_INDEX = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/indexes/bowtie/bowtie1/gencode17/gencode.v17.annotation';
 our $GENCODE_BOWTIE2_INDEX = '/icgc/lsdf/mb/analysis/guz/gencode_index/gencode.v17.annotation';
-our $GENCODE_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_broad_merged.gtf';
-our $GENCODE_DEXSEQ_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_v17_broad_for_dexseq.gff';
+#our $GENCODE_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_broad_merged.gtf';
+#our $GENCODE_DEXSEQ_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_v17_broad_for_dexseq.gff';
 
-#our $GENCODE_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_v19_merged.gtf';
-#our $GENCODE_DEXSEQ_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_v19_for_dexseq.gff';
+our $GENCODE_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_v19_merged.gtf';
+our $GENCODE_DEXSEQ_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_v19_for_dexseq.gff';
+
+#our $GENCODE_GTF = '/ibios/raid6/users/falcone/Projects/lincRNA/data/annotations/gencode.v21_Broad_no_overlap.gtf';
 
 
 # genome

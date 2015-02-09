@@ -51,7 +51,7 @@ sub run {
 		####################################################################
 		# trim
 		####################################################################
-		$pm->set_job_name("$sample_id"."_defuse_trimmed");
+		$pm->set_job_name("$sample_id"."_defuse_trimmed_$i");
 		$qid->{trim}->[$i] = $pipeline->genefusion->trim(
 			fastq1  => $r1_fastq,
 			fastq2  => $r2_fastq,
@@ -70,6 +70,7 @@ sub run {
 	$qid = $pipeline->genefusion->defuse(
 		fastq1_arrayref => $trimmed_fastq1_arrayref,
 		fastq2_arrayref => $trimmed_fastq2_arrayref,
+		sample_id => $sample_id,
 		delete_input => 1,
 	);
 

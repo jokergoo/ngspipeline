@@ -91,20 +91,22 @@ sub defuse {
 	
 	my %param = ( "fastq1_arrayref" => undef,
 	              "fastq2_arrayref" => undef,
+	              "sample_id" => "sample",
 				  "delete_input" => 0,
 				  @_);
 	
 	my $fastq1_arrayref = $param{fastq1_arrayref};
 	my $fastq2_arrayref = $param{fastq2_arrayref};
 	my $delete_input = $param{delete_input};
+	my $sample_id = $param{sample_id};
 	
 	my $pm = $self->get_pipeline_maker;
 	
 	$pm->del_file("$pm->{dir}/fastq1", "$pm->{dir}/fastq2");
 	$pm->add_command("mkfifo $pm->{dir}/fastq1 $pm->{dir}/fastq2", 0);
 	
-	my $cmd1 = "perl /home/guz/perllib/zcat.pl ";
-	my $cmd2 = "perl /home/guz/perllib/zcat.pl ";
+	my $cmd1 = "perl /home/guz/project/development/ngs_pipeline/zcat.pl ";
+	my $cmd2 = "perl /home/guz/project/development/ngs_pipeline/zcat.pl ";
 	for(my $i = 0; $i < scalar(@$fastq1_arrayref); $i ++) {
 		$cmd1 .= " ".to_abs_path($fastq1_arrayref->[$i]);
 		$cmd2 .= " ".to_abs_path($fastq2_arrayref->[$i]);
@@ -118,10 +120,16 @@ sub defuse {
 	$pm->add_command("rm $pm->{dir}/fastq1", 0);
 	$pm->add_command("rm $pm->{dir}/fastq2", 0);
 	
-	#if($delete_input) {
-	#	$pm->del_file(@$fastq1_arrayref);
-	#	$pm->del_file(@$fastq2_arrayref);
-	#}
+	$pm->add_command("perl /ibios/co02/guz/program/gene_fusion/deFuse/add_anno_to_defuse.pl $pm->{dir}/results/results.filtered.tsv > $pm->{dir}/$sample_id.gene_fusion.annotated.txt");
+	$pm->add_command("cp $pm->{dir}/results/results.filtered.tsv $pm->{dir}/results.filtered.tsv", 0);
+	$pm->add_command("chmod 755 $pm->{dir}/$sample_id.gene_fusion.annotated.txt");
+	$pm->add_command("chmod 755 $pm->{dir}/results.filtered.tsv");
+	$pm->add_command("rm -rf $pm->{dir}/results", 0);
+	
+	if($delete_input) {
+		$pm->del_file(@$fastq1_arrayref);
+		$pm->del_file(@$fastq2_arrayref);
+	}
 	
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_defuse",
 							 "-l" => { nodes => "1:ppn=16:lsdf", 

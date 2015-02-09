@@ -38,6 +38,8 @@ use CO::NGSPipeline::Tool::RNAseq::TopHat;
 use CO::NGSPipeline::Tool::RNAseq::STAR;
 use CO::NGSPipeline::Tool::RNAseq::GSNAP;
 
+use CO::NGSPipeline::Tool::ChIPSeq::Common;
+
 # invoking a method in BSMAP tools module
 sub bsmap {
 	my $self = shift;
@@ -103,5 +105,11 @@ sub genefusion {
 	return CO::NGSPipeline::Tool::RNAseq::GeneFusion->new->set_pipeline_maker($pm);
 }
 
+sub chipseq {
+	my $self = shift;
+	my $pm = $self->get_pipeline_maker;
+	
+	return CO::NGSPipeline::Tool::ChIPSeq::Common->new->set_pipeline_maker($pm);
+}
 
 1;

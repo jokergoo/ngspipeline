@@ -17,7 +17,11 @@ our @EXPORT = qw(to_abs_path
 
 sub to_abs_path {
 	my $path = shift;
-	return File::Spec->file_name_is_absolute($path) ? $path : File::Spec->rel2abs($path);
+	if(defined($path)) {
+		return File::Spec->file_name_is_absolute($path) ? $path : File::Spec->rel2abs($path);
+	} else {
+		return undef;
+	}
 }
 
 

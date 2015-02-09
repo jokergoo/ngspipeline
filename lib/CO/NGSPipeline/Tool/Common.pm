@@ -72,13 +72,16 @@ sub trim {
 	
 	my $qid;
 	if($fastq2) {
-		$pm->add_command("perl $TRIMPAIR_BIN_DIR/trim.pl --fastq1=$fastq1 --fastq2=$fastq2 --output1=$output1 --output2=$output2 --tmp=$pm->{tmp_dir}");
+		$pm->add_command("perl $TRIMPAIR_BIN_DIR/trim.pl --fastq1=$fastq1 --fastq2=$fastq2 --output1=$output1 --output2=$output2 --adapter ACACTCTTTCCCTACACGACGCTCTTCCGATCT --adapter CTCGGCATTCCTGCTGAACCGCTCTTCCGATCT --adapter AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT --adapter CAAGCAGAAGACGGCATACGAGATCGGTCTCGGCATTCCTGCTGAACCGCTCTTCCGATCT --adapter ACACTCTTTCCCTACACGACGCTCTTCCGATCT --adapter CGGTCTCGGCATTCCTACTGAACCGCTCTTCCGATCT --adapter ACACTCTTTCCCTACACGACGCTGTTCCATCT --adapter CAAGCAGAAGACGGCATACGAGCTCTTCCGATCT --adapter AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT --adapter CAAGCAGAAGACGGCATACGAGCTCTTCCGATCT --adapter ACACTCTTTCCCTACACGACGCTCTTCCGATCT --tmp=$pm->{tmp_dir}");
+		$pm->check_filesize($output1, 1024);
+		$pm->check_filesize($output2, 1024);
 		$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_trim",
 								  "-l" => { nodes => "1:ppn=3:lsdf",
 											mem => "1GB",
 											walltime => "50:00:00"},);
 	} else {
-		$pm->add_command("$CUTADAPT $fastq1 --quality-base 33 --quality_cutoff 20 --adapter AGATCGGAAGAGC ---minimum-length 20 | gzip -c > $output1");
+		$pm->add_command("$CUTADAPT $fastq1 --quality-base 33 --quality-cutoff 20 --adapter ACACTCTTTCCCTACACGACGCTCTTCCGATCT --adapter CTCGGCATTCCTGCTGAACCGCTCTTCCGATCT --adapter AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT --adapter CAAGCAGAAGACGGCATACGAGATCGGTCTCGGCATTCCTGCTGAACCGCTCTTCCGATCT --adapter ACACTCTTTCCCTACACGACGCTCTTCCGATCT --adapter CGGTCTCGGCATTCCTACTGAACCGCTCTTCCGATCT --adapter ACACTCTTTCCCTACACGACGCTGTTCCATCT --adapter CAAGCAGAAGACGGCATACGAGCTCTTCCGATCT --adapter AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT --adapter CAAGCAGAAGACGGCATACGAGCTCTTCCGATCT --adapter ACACTCTTTCCCTACACGACGCTCTTCCGATCT --minimum-length 20 | gzip -c > $output1");
+		$pm->check_filesize($output1, 1024);
 		$qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_trim",
 								  "-l" => { nodes => "1:ppn=1:lsdf",
 											mem => "1GB",
@@ -551,5 +554,43 @@ sub picard_insertsize {
 	return($qid);
 }
 
+
+sub bowtie_aln {
+	my $self = shift;
+	
+	my %param = ( "fastq1" => undef,
+				  "fastq2" => undef,
+				  "output" => undef,
+				  "delete_input" => 0,
+				  @_);
+	
+	my $fastq1 = to_abs_path($param{fastq1});
+	my $fastq2 = to_abs_path($param{fastq2});
+	my $output = to_abs_path($param{output});
+	my $delete_input = $param{delete_input};
+	
+	my $pm = $self->get_pipeline_maker;
+	
+	my $r = time().rand();
+	if(defined($fastq2) && -e $fastq2) {
+		$pm->add_command("bowtie2 -m 1 -p 8 -q -x $BOWTIE2_INDEX -1 $fastq1 -2 $fastq2 | mbuffer -q -m 2G -l /dev/null | samtools view -uSbh - | mbuffer -q -m 2G -l /dev/null | samtools sort - $pm->{dir}/$r");
+		$pm->del_file($fastq1, $fastq2) if($delete_input);
+	} else {
+		$pm->add_command("bowtie2 --sensitive -p 8 -q -x $BOWTIE2_INDEX -U $fastq1 | mbuffer -q -m 2G -l /dev/null | samtools view -uSbh - | mbuffer -q -m 2G -l /dev/null | samtools sort - $pm->{dir}/$r");
+		$pm->del_file($fastq1) if($delete_input);
+	}
+
+	$pm->add_command("mv $pm->{dir}/$r.bam $output", 0);
+	$pm->add_command("$SAMTOOLS index $output");
+	
+	$pm->check_filesize($output); # 1M
+	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_bowtie_align",
+						"-l" => { nodes => "1:ppn=8:lsdf", 
+								mem => "10GB",
+								walltime => "150:00:00"},
+					);
+		return($qid);
+
+}
 
 1;

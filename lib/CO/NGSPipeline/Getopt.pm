@@ -214,18 +214,25 @@ sub validate {
 		$tmp[1] = to_abs_path($tmp[1]);
 		$tmp[2] = to_abs_path($tmp[2]);
 		
-		unless(-e $tmp[1]) {
-			die "[ $tmp[0] ] cannot find $tmp[1]\n";
-		}
-		unless(-e $tmp[2]) {
-			die "[ $tmp[0] ] cannot find $tmp[2]\n";
+		# pair-end
+		if(defined($tmp[1]) and defined($tmp[2]) ) {
+			unless(-e $tmp[1]) {
+				die "[ $tmp[0] ] cannot find $tmp[1]\n";
+			}
+			unless(-e $tmp[2]) {
+				die "[ $tmp[0] ] cannot find $tmp[2]\n";
+			}
+
+			
+			if(basename($tmp[1]) eq basename($tmp[2])) {
+				die "[ $tmp[0] ] two fastq files have the same name! check your file!\n";
+			}
+		} elsif(defined($tmp[1])) {   # single end
+			unless(-e $tmp[1]) {
+				die "[ $tmp[0] ] cannot find $tmp[1]\n";
+			}
 		}
 
-		
-		if(basename($tmp[1]) eq basename($tmp[2])) {
-			die "[ $tmp[0] ] two fastq files have the same name! check your file!\n";
-		}
-		
 		# if specified with --sample
 		if(scalar(%subset_samples) and !$subset_samples{$tmp[0]}) {
 			print "$tmp[0] is not in --sample, skip this sample.\n";

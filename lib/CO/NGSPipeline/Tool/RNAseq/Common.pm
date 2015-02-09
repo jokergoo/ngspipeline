@@ -36,7 +36,7 @@ sub rnaseqqc {
 	$pm->add_command("picard.sh AddOrReplaceReadGroups INPUT=$bam OUTPUT=$bam_rg RGID=readGroup_name RGLB=readGroup_name RGPL=illumina RGPU=run RGSM=sample_name SORT_ORDER=coordinate CREATE_INDEX=true TMP_DIR=$pm->{tmp_dir}");
 	$pm->add_command("picard.sh ReorderSam INPUT=$bam_rg OUTPUT=$bam_reorder CREATE_INDEX=true R=$GENOME_HG19 TMP_DIR=$pm->{tmp_dir}");
 	$pm->del_file("$bam_rg", "$bam_base.RG.bai");
-	$pm->add_command("java -jar /home/guz/GenePatternServer/taskLib/RNASeQC.2.0/RNAseqMetrics.jar -s $pm->{dir}/sample_list -t $GENCODE_GTF -r $GENOME_HG19 -n 1000 -o $pm->{dir}/rnaseqqc");
+	$pm->add_command("java -jar /home/guz/soft/GenePatternServer/taskLib/RNASeQC.2.0/RNAseqMetrics.jar -s $pm->{dir}/sample_list -t $GENCODE_GTF -r $GENOME_HG19 -n 1000 -o $pm->{dir}/rnaseqqc");
 	$pm->del_file("$bam_reorder", "$bam_base.reorder.bai");
 	
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_common_rnaseqqc",
@@ -107,7 +107,7 @@ S2=`awk 'NR==8{print \$6}' $pm->{dir}/rnaseqqc/$sample_id/$sample_id.metrics.txt
 if [ `echo \"\$S1<30\" | bc` -eq 1 ]
 then
 	STRAND='reverse'
-elif [ `echo \"\$s1>70\" | bc` -eq 1 ]
+elif [ `echo \"\$S1>70\" | bc` -eq 1 ]
 then
 	STRAND='yes'
 else
@@ -136,21 +136,21 @@ then
 	$SAMTOOLS view -F 0x0004 $bam | htseq-count -s \$ANTISENSE -t exon -m intersection-nonempty - $GENCODE_GTF > $pm->{dir}/$sample_id.mkdup.exon.strand.count
 fi
 
-$SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.count
-$SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.count
+# $SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.count
+# $SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.count
 
-if [ \"\$STRAND\" != 'no' ]
-then
-	if [ \"\$STRAND\" == 'yes' ]
-	then
-		ANTISENSE='reverse'
-	else
-		ANTISENSE='yes'
-	fi
-	
-	$SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.strand.count
-	$SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.strand.count
-fi
+# if [ \"\$STRAND\" != 'no' ]
+# then
+#	if [ \"\$STRAND\" == 'yes' ]
+#	then
+#		ANTISENSE='reverse'
+#	else
+#		ANTISENSE='yes'
+#	fi
+#	
+#	$SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.strand.count
+#	$SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.strand.count
+# fi
 
 ", 0);
  	

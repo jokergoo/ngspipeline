@@ -11,19 +11,13 @@ use File::Basename;
 use CO::NGSPipeline::Getopt;
 
 # pieline this script supports
-use CO::NGSPipeline::Pipeline::GSNAP;
-use CO::NGSPipeline::Pipeline::TopHat;
-use CO::NGSPipeline::Pipeline::STAR;
-use CO::NGSPipeline::Pipeline::deFuse;
-use CO::NGSPipeline::Pipeline::FusionMap;
-use CO::NGSPipeline::Pipeline::FusionHunter;
-use CO::NGSPipeline::Pipeline::TopHatFusion;
+use CO::NGSPipeline::Pipeline::ChIPSEQ;
+
 
 my $opt = CO::NGSPipeline::Getopt->new;
 
 $opt->before("
-RNAseq pipeline (support alignment and fusion detection).
-Strand specificity will be inferred internally.
+ChIPseq pipeline.
 
 USAGE:
 
@@ -43,7 +37,7 @@ first to generate sample list file.
 
 # default values
 my $wd                 = "analysis";
-my $tool               = "star";
+my $tool               = "chipseq";
 my $list;
 my $enforce            = 0;
 my $request_sampleid;
@@ -52,13 +46,11 @@ my $filesize           = 1024*1024;
 my $prefix             = "";
 my $email              = 'z.gu@dkfz.de';
 
-my $is_strand_specific = 0;
-my $remove_duplicate   = 0;
 
 $opt->add(\$list,               "list=s");
 $opt->add(\$wd,                 "dir=s");
 $opt->add(\$tool,               "tool=s", 
-                                "available tools: tophat, star (default), gsnap, defuse");
+                                "available tools: chipseq");
 $opt->add(\$enforce,            "enforce");
 $opt->add(\$request_sampleid,   "sample=s");
 $opt->add(\$do_test,            "test");
@@ -68,9 +60,7 @@ $opt->add(\$email,              "email=s");
 
 $opt->getopt;
 
-if($is_strand_specific) {
-	$prefix = $prefix.($prefix ? "_ss" : "ss");
-}
+
 
 foreach my $sample_id (sort keys %$list) {
 	
@@ -88,36 +78,12 @@ foreach my $sample_id (sort keys %$list) {
 	print "submit pipeline for $sample_id\n";
 	
 	my $pipeline;
-	if($tool eq "gsnap") {
+	if($tool eq "chipseq") {
 	
-		$pipeline = CO::NGSPipeline::Pipeline::GSNAP->new();
+		$pipeline = CO::NGSPipeline::Pipeline::ChIPSEQ->new();
 		
-	} elsif($tool eq "tophat") {
-	
-		$pipeline = CO::NGSPipeline::Pipeline::TopHat->new();
-		
-	}  elsif($tool eq "star") {
-	
-		$pipeline = CO::NGSPipeline::Pipeline::STAR->new();
-		
-	} elsif($tool eq "defuse") {
-	
-		$pipeline = CO::NGSPipeline::Pipeline::deFuse->new();
-		
-#	} elsif($tool eq "fusionmap") {
-#	
-#		$pipeline = CO::NGSPipeline::Pipeline::FusionMap->new();
-#		
-#	} elsif($tool eq "fusionhunter") {
-#	
-#		$pipeline = CO::NGSPipeline::Pipeline::FusionHunter->new();
-#		
-#	} elsif($tool eq "tophatfusion") {
-#	
-#		$pipeline = CO::NGSPipeline::Pipeline::TopHatFusion->new();
-#		
 	} else {
-		die "--tool can only be set to one of 'gsnap', 'tophat', 'star', 'defuse'.\n";
+		die "--tool can only be set to one of 'chipseq'.\n";
 	}
 	
 	my $r1 = $list->{$sample_id}->{r1};
@@ -136,8 +102,6 @@ foreach my $sample_id (sort keys %$list) {
 		               r1                 => $r1,
 					   r2                 => $r2,
 					   library            => $library,
-					   is_strand_specific => $is_strand_specific,
-					   remove_duplicate   => $remove_duplicate,
 					   );
 					   
 }
