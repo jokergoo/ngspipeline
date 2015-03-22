@@ -1,3 +1,0 @@
-test_AK066r	/icgc/lsdf/mb/analysis/guz/pipeline_test/rna_sequencing/AK066r_test.R1.fastq.gz	/icgc/lsdf/mb/analysis/guz/pipeline_test/rna_sequencing/AK066r_test.R2.fastq.gz
-test_AK124r	/icgc/lsdf/mb/analysis/guz/pipeline_test/rna_sequencing/AK124r_test.lane1.R1.fastq.gz	/icgc/lsdf/mb/analysis/guz/pipeline_test/rna_sequencing/AK124r_test.lane1.R2.fastq.gz
-test_AK124r	/icgc/lsdf/mb/analysis/guz/pipeline_test/rna_sequencing/AK124r_test.lane2.R1.fastq.gz	/icgc/lsdf/mb/analysis/guz/pipeline_test/rna_sequencing/AK124r_test.lane2.R2.fastq.gz
