@@ -39,6 +39,7 @@ use CO::NGSPipeline::Tool::RNAseq::STAR;
 use CO::NGSPipeline::Tool::RNAseq::GSNAP;
 
 use CO::NGSPipeline::Tool::ChIPSeq::Common;
+use CO::NGSPipeline::Tool::WGS::Common;
 
 # invoking a method in BSMAP tools module
 sub bsmap {
@@ -111,5 +112,13 @@ sub chipseq {
 	
 	return CO::NGSPipeline::Tool::ChIPSeq::Common->new->set_pipeline_maker($pm);
 }
+
+sub wgs {
+	my $self = shift;
+	my $pm = $self->get_pipeline_maker;
+	
+	return CO::NGSPipeline::Tool::WGS::Common->new->set_pipeline_maker($pm);
+}
+
 
 1;

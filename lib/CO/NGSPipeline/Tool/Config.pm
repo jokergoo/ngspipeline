@@ -24,6 +24,7 @@ our @EXPORT = qw($BWA
 				 $GENCODE_GTF
 				 $GENOME_HG19
 				 $GENOME_1KG
+				 $GENOME_MM10
 				 $GENCODE_DEXSEQ_GTF
                  );
 
@@ -50,7 +51,7 @@ our $GENCODE_DEXSEQ_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_v19_for_dex
 # genome
 our $GENOME_HG19 = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/sequence/hg19_chr/hg19_karyotypically_sorted.fa';
 our $GENOME_1KG = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/sequence/1KGRef/hs37d5.fa';
-
+our $GENOME_MM10 = '/icgc/ngs_share/assemblies/mm10/indexes/bwa/bwa06/bwa06_GRCm38mm10/GRCm38mm10.fa';
 
 ############################
 ## absolute path for binary programs
