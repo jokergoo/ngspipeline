@@ -66,6 +66,7 @@ our @EXPORT = qw($BWA
                 $BISSNP_INDEL_1_FILE_MM
                 $BISSNP_INDEL_2_FILE_MM
                 $BISSNP_DBSNP_FILE_MM
+
                  );
 
 our $PICARD_BIN_DIR = '/ibios/tbi_cluster/11.4/x86_64/picard/picard-tools';
@@ -91,7 +92,7 @@ our $GENCODE_DEXSEQ_GTF = '/ibios/co02/guz/MethSuite/gencode/gencode_v19_for_dex
 # genome
 our $GENOME_HG19 = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/sequence/hg19_chr/hg19_karyotypically_sorted.fa';
 our $GENOME_1KG = '/icgc/ngs_share/assemblies/hg19_GRCh37_1000genomes/sequence/1KGRef/hs37d5.fa';
-
+our $GENOME_MM10 = '/icgc/ngs_share/assemblies/mm10/indexes/bwa/bwa06/bwa06_GRCm38mm10/GRCm38mm10.fa';
 
 ############################
 ## absolute path for binary programs

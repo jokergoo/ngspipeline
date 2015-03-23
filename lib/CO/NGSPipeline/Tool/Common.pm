@@ -426,7 +426,7 @@ sub samse {
 	my $pm = $self->get_pipeline_maker;
 	
 	my $r = time().rand();
-	$pm->add_command("$BWA sampe $genome $aln1 $fastq1 | mbuffer -q -m 2G -l /dev/null | samtools view -uSbh - | mbuffer -q -m 2G -l /dev/null | samtools sort - $pm->{dir}/$r");
+	$pm->add_command("$BWA samse $genome $aln1 $fastq1 | mbuffer -q -m 2G -l /dev/null | samtools view -uSbh - | mbuffer -q -m 2G -l /dev/null | samtools sort - $pm->{dir}/$r");
 	$pm->add_command("mv $pm->{dir}/$r.bam $output", 0);
 	$pm->add_command("$SAMTOOLS index $output");
 	$pm->del_file($aln1, $fastq1) if($delete_input);

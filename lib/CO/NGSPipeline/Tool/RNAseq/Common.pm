@@ -135,21 +135,21 @@ then
 	$SAMTOOLS view -F 0x0004 $bam | htseq-count -s \$ANTISENSE -t exon -m intersection-nonempty - $GENCODE_GTF > $pm->{dir}/$sample_id.mkdup.exon.strand.count
 fi
 
-# $SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.count
-# $SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.count
+$SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.count
+$SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$STRAND $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.count
 
-# if [ \"\$STRAND\" != 'no' ]
-# then
-#	if [ \"\$STRAND\" == 'yes' ]
-#	then
-#		ANTISENSE='reverse'
-#	else
-#		ANTISENSE='yes'
-#	fi
-#	
-#	$SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.strand.count
-#	$SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.strand.count
-# fi
+if [ \"\$STRAND\" != 'no' ]
+then
+	if [ \"\$STRAND\" == 'yes' ]
+	then
+		ANTISENSE='reverse'
+	else
+		ANTISENSE='yes'
+	fi
+	
+	$SAMTOOLS view -F 0x0404 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.nodup.strand.count
+	$SAMTOOLS view -F 0x0004 $bam | python $dexseq_script_dir/dexseq_count.py -p yes -r name -s \$ANTISENSE $GENCODE_DEXSEQ_GTF - $pm->{dir}/$sample_id.mkdup.dexseq.strand.count
+fi
 
 ", 0);
  	

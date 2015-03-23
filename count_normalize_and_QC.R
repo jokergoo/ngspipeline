@@ -54,7 +54,7 @@ library(circlize)
 library(GTF)
 
 
-qq.options(cat_prefix = function(x) xterm256::style(format(Sys.time(), "[%Y-%m-%d %H:%M:%S] "), fg = "green") )
+qq.options(cat_prefix = function(x) format(Sys.time(), "[%Y-%m-%d %H:%M:%S] ") )
 
 # configuration for RNASeq 
 counting_file_template       = qq("`input`/@{sid}/@{sid}.mkdup.exon.count", code.patter = "`CODE`")
@@ -269,7 +269,7 @@ par(las = 3)
 axis(side = 1, at = seq_along(sample_id), labels = sample_id)
 axis(side = 2)
 title(ylab = "Number of reads", main = "Reads statistics")
-legend("topleft", pch = 15, col = c("blue", "green", "red", "pink"), legend = c("Unique", "Duplicates", "Mapped", "Mapped unique"))
+legend("topleft", pch = 15, col = c("blue", "green", "red", "pink"), legend = c("Unique", "Duplicates", "Mapped unique", "Mapped duplicates"))
 box()
 
 par(new = TRUE)
