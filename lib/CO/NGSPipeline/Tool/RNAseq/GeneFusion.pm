@@ -1,7 +1,7 @@
 package CO::NGSPipeline::Tool::RNAseq::GeneFusion;
 
 use strict;
-use CO::NGSPipeline::Tool::RNAseq::Config;
+use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 use File::Basename;
 

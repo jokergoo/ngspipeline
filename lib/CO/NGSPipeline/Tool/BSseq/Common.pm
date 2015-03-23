@@ -2,7 +2,6 @@ package CO::NGSPipeline::Tool::BSseq::Common;
 
 
 use strict;
-use CO::NGSPipeline::Tool::BSseq::Config;
 use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 use File::Basename;

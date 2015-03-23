@@ -10,14 +10,6 @@ use CO::PipelineMaker;
 use File::Basename;
 use CO::NGSPipeline::Getopt;
 
-# pieline this script supports
-use CO::NGSPipeline::Pipeline::GSNAP;
-use CO::NGSPipeline::Pipeline::TopHat;
-use CO::NGSPipeline::Pipeline::STAR;
-use CO::NGSPipeline::Pipeline::deFuse;
-use CO::NGSPipeline::Pipeline::FusionMap;
-use CO::NGSPipeline::Pipeline::FusionHunter;
-use CO::NGSPipeline::Pipeline::TopHatFusion;
 
 my $opt = CO::NGSPipeline::Getopt->new;
 
@@ -51,8 +43,8 @@ my $do_test            = 0;
 my $filesize           = 1024*1024;
 my $prefix             = "";
 my $email              = 'z.gu@dkfz.de';
+my $configure          = undef;
 
-my $is_strand_specific = 0;
 my $remove_duplicate   = 0;
 
 $opt->add(\$list,               "list=s");
@@ -65,22 +57,36 @@ $opt->add(\$do_test,            "test");
 $opt->add(\$filesize,           "filesize=i");
 $opt->add(\$prefix,             "prefix=s");
 $opt->add(\$email,              "email=s");
+$opt->add(\$configure,          "configure=s%");
 
 $opt->getopt;
 
-if($is_strand_specific) {
-	$prefix = $prefix.($prefix ? "_ss" : "ss");
+# import command-line configuration into Config module
+use CO::NGSPipeline::Tool::Config;
+if(defined($configure)) {
+	no strict 'refs';
+
+	foreach my $key (keys %$configure) {
+		eval("our \$$key = \$configure->{\$key}");
+		*{"CO::NGSPipeline::Tool::Config\::$key"} = \*{"main\::$key"};
+	}
 }
 
 foreach my $sample_id (sort keys %$list) {
 	
 	my $r1 = $list->{$sample_id}->{r1};
 	my $r2 = $list->{$sample_id}->{r2};
-	
-	#if(($tool eq "defuse" or $tool eq "fusionmap" or $tool eq "fusionhunter") and scalar(@$r1) > 1) {
-	#	die "Currently only support one lane per sample for gene fusion pipeline. $sample_id has multiple lanes.\n";
-	#}
 }
+
+# pieline this script supports
+use CO::NGSPipeline::Pipeline::GSNAP;
+use CO::NGSPipeline::Pipeline::TopHat;
+use CO::NGSPipeline::Pipeline::STAR;
+use CO::NGSPipeline::Pipeline::deFuse;
+use CO::NGSPipeline::Pipeline::FusionMap;
+use CO::NGSPipeline::Pipeline::FusionHunter;
+use CO::NGSPipeline::Pipeline::TopHatFusion;
+
 
 foreach my $sample_id (sort keys %$list) {
 	
@@ -99,7 +105,7 @@ foreach my $sample_id (sort keys %$list) {
 	}  elsif($tool eq "star") {
 	
 		$pipeline = CO::NGSPipeline::Pipeline::STAR->new();
-		
+
 	} elsif($tool eq "defuse") {
 	
 		$pipeline = CO::NGSPipeline::Pipeline::deFuse->new();
@@ -136,7 +142,6 @@ foreach my $sample_id (sort keys %$list) {
 		               r1                 => $r1,
 					   r2                 => $r2,
 					   library            => $library,
-					   is_strand_specific => $is_strand_specific,
 					   remove_duplicate   => $remove_duplicate,
 					   );
 					   

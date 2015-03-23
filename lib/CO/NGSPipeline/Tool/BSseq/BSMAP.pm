@@ -1,7 +1,6 @@
 package CO::NGSPipeline::Tool::BSseq::BSMAP;
 
 use strict;
-use CO::NGSPipeline::Tool::BSseq::Config;
 use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 

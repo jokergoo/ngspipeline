@@ -74,7 +74,12 @@ sub add_command {
 	if(! exists($self->{command})) {
 		$self->{command} = [];
 	}
-	
+
+	push(@{$self->{command}}, "
+############################################################################
+"
+);
+
 	my $fn = $self->get_job_name;
 	# if checking the status of the command, we will add additional commands
 	if($add_tag) {

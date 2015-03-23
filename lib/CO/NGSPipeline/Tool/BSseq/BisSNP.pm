@@ -1,7 +1,7 @@
 package CO::NGSPipeline::Tool::BSseq::BisSNP;
 
 use strict;
-use CO::NGSPipeline::Tool::BSseq::Config;
+use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 
 use base qw(CO::NGSPipeline::Tool::BSseq::Common

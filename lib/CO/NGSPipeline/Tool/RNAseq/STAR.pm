@@ -1,7 +1,6 @@
 package CO::NGSPipeline::Tool::RNAseq::STAR;
 
 use strict;
-use CO::NGSPipeline::Tool::RNAseq::Config;
 use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 
@@ -43,7 +42,7 @@ sub align {
 	
 	my $rt = int(rand(999999)).time();
 	$pm->add_command("mkfifo $pm->{dir}/$rt.fastq1 $pm->{dir}/$rt.fastq2", 0);
-	 $pm->add_command("zcat -c $fastq1 > $pm->{dir}/$rt.fastq1 &", 0);
+	$pm->add_command("zcat -c $fastq1 > $pm->{dir}/$rt.fastq1 &", 0);
     $pm->add_command("zcat -c $fastq2 > $pm->{dir}/$rt.fastq2 &", 0);
 	
 	my $r = time().rand();

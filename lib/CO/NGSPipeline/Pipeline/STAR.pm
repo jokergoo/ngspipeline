@@ -2,7 +2,8 @@ package CO::NGSPipeline::Pipeline::STAR;
 
 use strict;
 use File::Basename;
-use base qw/CO::NGSPipeline/;
+use base qw/CO::NGSPipeline 
+            CO::NGSPipeline::Tool::RNAseq::STAR/;
 
 sub new {
 	my $class = shift;
@@ -52,13 +53,13 @@ sub run {
 		# fastqc
 		###################################################################
 		$pm->set_job_name("$sample_id"."_star_fastqc_r1_$i");
-		$qid->{fastqc_r1} = $pipeline->star->fastqc(
+		$qid->{fastqc_r1} = $pipeline->fastqc(
 				fastq      => $r1_fastq,
 				output_dir => "$pm->{dir}/fastqc_r1_$i"
 		);
 
 		$pm->set_job_name("$sample_id"."_star_fastqc_r2_$i");
-		$qid->{fastqc_r2} = $pipeline->star->fastqc(
+		$qid->{fastqc_r2} = $pipeline->fastqc(
 				fastq      => $r2_fastq,
 				output_dir => "$pm->{dir}/fastqc_r2_$i"
 		);
@@ -68,7 +69,7 @@ sub run {
 		##################################################################
 		$pm->set_job_name("$sample_id"."_star_align_$i");
 		$pm->set_job_dependency($qid->{trim});
-		$qid->{alignment} = $pipeline->star->align(
+		$qid->{alignment} = $pipeline->align(
 			fastq1       => "$r1_fastq",
 			fastq2       => "$r2_fastq",
 			output       => "$pm->{dir}/$sample_id.$i.bam",
@@ -82,7 +83,7 @@ sub run {
 		####################################################################
 		$pm->set_job_name("$sample_id"."_star_flagstat_$i");
 		$pm->set_job_dependency($qid->{alignment});
-		$qid->{flagstat}->[$i] = $pipeline->star->samtools_flagstat(
+		$qid->{flagstat}->[$i] = $pipeline->samtools_flagstat(
 			sam          => "$pm->{dir}/$sample_id.$i.bam",
 			output       => "$pm->{dir}/$sample_id.$i.flagstat",
 			delete_input => 0,
@@ -93,7 +94,7 @@ sub run {
 	
 	$pm->set_job_name("$sample_id"."_star_merge_and_mkdup");
 	$pm->set_job_dependency(@{$qid->{flagstat}});
-	$qid->{remove_duplicate} = $pipeline->star->merge_nodup(
+	$qid->{remove_duplicate} = $pipeline->merge_nodup(
 			sam_list     => $sam_sort_list,
 			output       => "$pm->{dir}/$sample_id.mkdup.bam",
 			delete_input => 1,
@@ -102,7 +103,7 @@ sub run {
 
 	$pm->set_job_name("$sample_id"."_star_flagstat");
 	$pm->set_job_dependency($qid->{remove_duplicate});
-	$pipeline->star->samtools_flagstat(
+	$pipeline->samtools_flagstat(
 			sam          => "$pm->{dir}/$sample_id.mkdup.bam",
 			output       => "$pm->{dir}/$sample_id.mkdup.flagstat",
 			delete_input => 0,
@@ -114,7 +115,7 @@ sub run {
 	####################################################################
 	$pm->set_job_name("$sample_id"."_rnaseq_qc");
 	$pm->set_job_dependency($qid->{remove_duplicate});
-	$qid->{qc} = $pipeline->star->rnaseqqc(
+	$qid->{qc} = $pipeline->rnaseqqc(
 		bam       => "$pm->{dir}/$sample_id.mkdup.bam",
 		sample_id => $sample_id,
 	);
@@ -124,7 +125,7 @@ sub run {
 	####################################################################
 	$pm->set_job_name("$sample_id"."_namesort");
 	$pm->set_job_dependency($qid->{remove_duplicate});
-	$qid->{namesort} = $pipeline->star->sort_sam(
+	$qid->{namesort} = $pipeline->sort_sam(
 		sam     => "$pm->{dir}/$sample_id.mkdup.bam",
 		output  => "$pm->{dir}/$sample_id.mkdup.namesorted.bam",
 		sort_by => "queryname",
@@ -136,7 +137,7 @@ sub run {
 	####################################################################
 	$pm->set_job_name("$sample_id"."_counting");
 	$pm->set_job_dependency($qid->{qc}, $qid->{namesort});
-	$qid->{counting} = $pipeline->star->counting(
+	$qid->{counting} = $pipeline->counting(
 		bam => "$pm->{dir}/$sample_id.mkdup.namesorted.bam",
 		sample_id => $sample_id,
 	);

@@ -1,7 +1,7 @@
 package CO::NGSPipeline::Tool::RNAseq::TopHat;
 
 use strict;
-use CO::NGSPipeline::Tool::RNAseq::Config;
+use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 
 use base qw(CO::NGSPipeline::Tool::RNAseq::Common

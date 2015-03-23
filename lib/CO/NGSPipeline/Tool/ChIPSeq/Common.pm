@@ -5,7 +5,6 @@ package CO::NGSPipeline::Tool::ChIPSeq::Common;
 # pipelines.
 
 use strict;
-use CO::NGSPipeline::Tool::ChIPSeq::Config;
 use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 use File::Basename;

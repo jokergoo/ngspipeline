@@ -1,7 +1,7 @@
 package CO::NGSPipeline::Pipeline::methylCtools;
 
 use strict;
-use CO::NGSPipeline::Tool::BSseq::Config;
+use CO::NGSPipeline::Tool::Config;
 use File::Basename;
 use base qw/CO::NGSPipeline/;
 

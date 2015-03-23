@@ -1,7 +1,6 @@
 package CO::NGSPipeline::Tool::BSseq::Bsmooth;
 
 use strict;
-use CO::NGSPipeline::Tool::BSseq::Config;
 use CO::NGSPipeline::Tool::Config;
 use CO::Utils;
 use File::Temp qw/tempfile/;
