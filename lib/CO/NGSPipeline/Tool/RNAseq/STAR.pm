@@ -28,7 +28,8 @@ sub align {
 				  @_);
 	
 	my $fastq1 = to_abs_path($param{fastq1});
-	my $fastq2 = to_abs_path($param{fastq2});
+	my $fastq2;
+    if($param{fastq2}) { $fastq2 = to_abs_path($param{fastq2}); }
 	my $output = to_abs_path($param{output});
 	my $delete_input = $param{delete_input};
 	my $sample_id = $param{sample_id};
@@ -39,26 +40,45 @@ sub align {
 	}
 	
 	my $pm = $self->get_pipeline_maker;
+
+	if($fastq2) {
 	
-	my $rt = int(rand(999999)).time();
-	$pm->add_command("mkfifo $pm->{dir}/$rt.fastq1 $pm->{dir}/$rt.fastq2", 0);
-	$pm->add_command("zcat -c $fastq1 > $pm->{dir}/$rt.fastq1 &", 0);
-    $pm->add_command("zcat -c $fastq2 > $pm->{dir}/$rt.fastq2 &", 0);
-	
-	my $r = time().rand();
-	if($strand) {
-		$pm->add_command("$STAR --genomeDir $STAR_GENOME --readFilesIn $pm->{dir}/$rt.fastq1 $pm->{dir}/$rt.fastq2 --runThreadN 8 --outFileNamePrefix $pm->{dir}/$sample_id. --genomeLoad LoadAndRemove --alignIntronMax 500000 --alignMatesGapMax 500000 --outSAMunmapped Within --outFilterMultimapNmax 2 --outFilterMismatchNmax 3 --outFilterMismatchNoverLmax 0.3 --sjdbOverhang 50 --chimSegmentMin 15 --chimScoreMin 1 --chimScoreJunctionNonGTAG 0 --chimJunctionOverhangMin 15 --outStd SAM | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS view -uSbh - | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS sort - $pm->{dir}/$r");
+		my $rt = int(rand(999999)).time();
+		$pm->add_command("mkfifo $pm->{dir}/$rt.fastq1 $pm->{dir}/$rt.fastq2", 0);
+		$pm->add_command("zcat -c $fastq1 > $pm->{dir}/$rt.fastq1 &", 0);
+	    $pm->add_command("zcat -c $fastq2 > $pm->{dir}/$rt.fastq2 &", 0);
+		
+		my $r = time().rand();
+		if($strand) {
+			$pm->add_command("$STAR --genomeDir $STAR_GENOME --readFilesIn $pm->{dir}/$rt.fastq1 $pm->{dir}/$rt.fastq2 --runThreadN 8 --outFileNamePrefix $pm->{dir}/$sample_id. --genomeLoad LoadAndRemove --alignIntronMax 500000 --alignMatesGapMax 500000 --outSAMunmapped Within --outFilterMultimapNmax 2 --outFilterMismatchNmax 3 --outFilterMismatchNoverLmax 0.3 --sjdbOverhang 100 --chimSegmentMin 15 --chimScoreMin 1 --chimScoreJunctionNonGTAG 0 --chimJunctionOverhangMin 15 --outStd SAM | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS view -uSbh - | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS sort - $pm->{dir}/$r");
+		} else {
+			$pm->add_command("$STAR --outSAMstrandField intronMotif --genomeDir $STAR_GENOME --readFilesIn $pm->{dir}/$rt.fastq1 $pm->{dir}/$rt.fastq2 --runThreadN 8 --outFileNamePrefix $pm->{dir}/$sample_id. --genomeLoad LoadAndRemove --alignIntronMax 500000 --alignMatesGapMax 500000 --outSAMunmapped Within --outFilterMultimapNmax 2 --outFilterMismatchNmax 3 --outFilterMismatchNoverLmax 0.3 --sjdbOverhang 100 --chimSegmentMin 15 --chimScoreMin 1 --chimScoreJunctionNonGTAG 0 --chimJunctionOverhangMin 15 --outStd SAM | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS view -uSbh - | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS sort - $pm->{dir}/$r");	
+		}
+		$pm->add_command("rm $pm->{dir}/$rt.fastq1", 0);
+	    $pm->add_command("rm $pm->{dir}/$rt.fastq2", 0);
+		$pm->add_command("mv $pm->{dir}/$r.bam $output", 0);
+		$pm->add_command("$SAMTOOLS index $output");
+		
+		$pm->check_filesize("$output");
+		$pm->del_file($fastq1, $fastq2) if($delete_input);
 	} else {
-		$pm->add_command("$STAR --outSAMstrandField intronMotif --genomeDir $STAR_GENOME --readFilesIn $pm->{dir}/$rt.fastq1 $pm->{dir}/$rt.fastq2 --runThreadN 8 --outFileNamePrefix $pm->{dir}/$sample_id. --genomeLoad LoadAndRemove --alignIntronMax 500000 --alignMatesGapMax 500000 --outSAMunmapped Within --outFilterMultimapNmax 2 --outFilterMismatchNmax 3 --outFilterMismatchNoverLmax 0.3 --sjdbOverhang 50 --chimSegmentMin 15 --chimScoreMin 1 --chimScoreJunctionNonGTAG 0 --chimJunctionOverhangMin 15 --outStd SAM | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS view -uSbh - | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS sort - $pm->{dir}/$r");	
+		my $rt = int(rand(999999)).time();
+		$pm->add_command("mkfifo $pm->{dir}/$rt.fastq1", 0);
+		$pm->add_command("zcat -c $fastq1 > $pm->{dir}/$rt.fastq1 &", 0);
+		
+		my $r = time().rand();
+		if($strand) {
+			$pm->add_command("$STAR --genomeDir $STAR_GENOME --readFilesIn $pm->{dir}/$rt.fastq1 --runThreadN 8 --outFileNamePrefix $pm->{dir}/$sample_id. --genomeLoad LoadAndRemove --alignIntronMax 500000 --alignMatesGapMax 500000 --outSAMunmapped Within --outFilterMultimapNmax 2 --outFilterMismatchNmax 3 --outFilterMismatchNoverLmax 0.3 --sjdbOverhang 100 --chimSegmentMin 15 --chimScoreMin 1 --chimScoreJunctionNonGTAG 0 --chimJunctionOverhangMin 15 --outStd SAM | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS view -uSbh - | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS sort - $pm->{dir}/$r");
+		} else {
+			$pm->add_command("$STAR --outSAMstrandField intronMotif --genomeDir $STAR_GENOME --readFilesIn $pm->{dir}/$rt.fastq1 --runThreadN 8 --outFileNamePrefix $pm->{dir}/$sample_id. --genomeLoad LoadAndRemove --alignIntronMax 500000 --alignMatesGapMax 500000 --outSAMunmapped Within --outFilterMultimapNmax 2 --outFilterMismatchNmax 3 --outFilterMismatchNoverLmax 0.3 --sjdbOverhang 100 --chimSegmentMin 15 --chimScoreMin 1 --chimScoreJunctionNonGTAG 0 --chimJunctionOverhangMin 15 --outStd SAM | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS view -uSbh - | mbuffer -q -m 2G -l /dev/null | $SAMTOOLS sort - $pm->{dir}/$r");	
+		}
+		$pm->add_command("rm $pm->{dir}/$rt.fastq1", 0);
+		$pm->add_command("mv $pm->{dir}/$r.bam $output", 0);
+		$pm->add_command("$SAMTOOLS index $output");
+		
+		$pm->check_filesize("$output");
+		$pm->del_file($fastq1) if($delete_input);
 	}
-	$pm->add_command("rm $pm->{dir}/$rt.fastq1", 0);
-    $pm->add_command("rm $pm->{dir}/$rt.fastq2", 0);
-	$pm->add_command("mv $pm->{dir}/$r.bam $output", 0);
-	$pm->add_command("$SAMTOOLS index $output");
-	
-	$pm->check_filesize("$output");
-	$pm->del_file($fastq1, $fastq2) if($delete_input);
-	
 	
 	my $qid = $pm->run("-N" => $pm->get_job_name ? $pm->get_job_name : "_star_align",
 							 "-l" => { nodes => "1:ppn=8:lsdf", 
